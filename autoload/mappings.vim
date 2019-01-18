@@ -32,7 +32,7 @@ function! mappings#copy(mode)
       call jobstart('curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'
             \ '"note": { "deckName": "'.(g:ankify_deckName).'", "modelName": "'.(g:ankify_modelName).'",'
             \ '"fields": { "'.(g:ankify_mainField).'": "'.(@a).'"},'
-            \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }')
+            \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }''')
 
     elseif a:mode == 't'
       let @+=(b:ftag).(getline('.'))

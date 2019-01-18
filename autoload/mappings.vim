@@ -23,7 +23,7 @@ function! mappings#copy(mode)
 
     elseif a:mode == 'v'
       let l:qq='card:1 tag:'.(b:ftag).' Quest:\"*'.(getline('.')).'*\"'
-      call jobstart('curl localhost:8765 -X POST -d ''{"action":"guiBrowse","version":6,"params":{"query": "'.l:qq.'"}}''')
+      call system('curl localhost:8765 -X POST -d ''{"action":"guiBrowse","version":6,"params":{"query": "'.l:qq.'"}}''')
 
     elseif a:mode == 'a'
       let l:view = winsaveview()
@@ -35,7 +35,7 @@ function! mappings#copy(mode)
             \ '"note": { "deckName": "'.(g:ankify_deckName).'", "modelName": "'.(g:ankify_modelName).'",'
             \ '"fields": { "'.(g:ankify_mainField).'": "'.(l:entry).'"},'
             \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }'''
-      call jobstart('curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'
+      call system('curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'
             \ '"note": { "deckName": "'.(g:ankify_deckName).'", "modelName": "'.(g:ankify_modelName).'",'
             \ '"fields": { "'.(g:ankify_mainField).'": "'.(@a).'"},'
             \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }''')

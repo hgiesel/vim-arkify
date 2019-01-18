@@ -18,6 +18,6 @@ function! s:ankify_install_utils()
   call system('cp '.s:plugindir.'/../tools/arkutil.sh /usr/local/bin/arkutil')
 endfunction
 
-command AnkifyInstallUtils call s:ankify_install_utils
+command AnkifyInstallUtils call <sid>ankify_install_utils()
 
 let g:ankify_vim_loaded = v:true

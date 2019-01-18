@@ -54,7 +54,7 @@ nmap <silent> <localleader>t <Plug>(AnkifyCopyFullyQualifiedTag)
 nmap <silent> <localleader>T <Plug>(AnkifyCopyFtag)
 nmap <silent> <localleader>q <Plug>(AnkifyCopyAnkiQuery)
 nmap <silent> <localleader>v <Plug>(AnkifyAnkiQuery)
-nmap <silent> <localleader>a <Plug>(AnkifyCopyBlock)
+nmap <silent> <localleader>a <Plug>(AnkifyAnkiAddCard)
 
 nmap <silent> <localleader>i <Plug>mappings#insertTag
 " TODO should be configurable on what tags should look like

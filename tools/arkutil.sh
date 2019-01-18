@@ -1,58 +1,16 @@
-
-ark() {
-  [[ ! $ARCHIVE_PATH ]] && echo 'No $ARCHIVE_PATH is set!' && return 1
-
-  declare TOPICS=$(command grep -rPh -B1 '(?=:stats: ).*' $(find $ARCHIVE_PATH -type f -name 'README.*')\
-    | command grep -v -- --\
-    | sed -e 'N;s/\n/ /g' -r -e  's|:tag: ([^ ]*) :stats: (.*)|\1,\2|g')
-
-  # default mode
-  declare MODE=go
-
-  while [[ $# -gt 0 ]]; do
-    OPTIND=1
-
-    while getopts 'vd?''gau''shknqc' opt; do
-      case "$opt" in
-        v) declare VERBOSE=t ;;
-        d) declare DRYRUN=t ;;
-        \?)
-          echo $'usage: ark [<options>] [topic::subtopic:quest:]\n'\
-            $'[-v(erbose)] [-d(ryrun)] [-?(help)]\n'\
-            $'[-g(o)] [-a(ssets)] [-u(pdate)]\n'\
-            $'[-s(tats)] [-h(eaders)] [-k(eywords)] [-q(uests)] [-c(ode)] '
-          return 0
-          ;;
-
-        g) MODE=go ;;
-        a) MODE=assets ;;
-        u) MODE=update ;;
-
-        s) MODE=stats ;;
-        h) MODE=headers ;;
-        k) MODE=keywords ;;
-        n) MODE=notation ;;
-        q) MODE=quests ;;
-        c) MODE=comments ;;
-      esac
-    done
-
-    shift $((OPTIND-1))
-    [[ $1 ]] && { declare ARG=$1; shift; }
-  done
-
+arkutil_analyze_path() {
   ######################### PROCESSING OF $ARG: SETTING TOPIC_*
   declare TOPIC_DEF=t
   [[ $ARG ]] && declare TOPIC_ARG=${ARG%%::*}
 
-  if [[ $ARG =~ .+::.* ]]; then
+  if [[ $ARG =~ .+::?.* ]]; then
     declare SUBTOPIC_DEF=t
 
     declare tmp1=${ARG##*::}
     declare SUBTOPIC_ARG=${tmp1%%:*}
   fi
 
-  if [[ $ARG =~ .+::.+:.+ ]]; then
+  if [[ $ARG =~ .+::?.+:.+ ]]; then
     declare QUEST_DEF=t
 
     declare tmp2=${ARG%%:}
@@ -113,7 +71,6 @@ ark() {
   ######################### PROCESSING OF $ARG: DETECTING LOGIC ERRORS
   if [[ $VERBOSE ]]; then
     echo "arg:            $ARG"
-    echo "mode:           $MODE"
     echo "topics:         $TOPICS"
     echo "topic def:      $TOPIC_DEF"
     echo "topic arg:      $TOPIC_ARG"
@@ -152,7 +109,9 @@ ark() {
 
   [[ $VERBOSE ]] && echo "--------- Survived scrutinization! ---------"
   [[ $DRYRUN ]] && return 0
+}
 
+execute_command() {
   ######################### COMMANDS WITH TOPIC ARGUMENT
   if [[ ! $TOPIC_EXP && ! $MULTIPLE ]]; then
     case $MODE in
@@ -270,3 +229,32 @@ ark() {
     esac
   fi
 }
+
+[[ ! $ARCHIVE_ROOT ]] && echo 'No $ARCHIVE_PATH is set!' && return 1
+
+declare TOPICS=$(command grep -rPh -B1 '(?=:stats: ).*' $(find $ARCHIVE_PATH -type f -name 'README.*')\
+  | command grep -v -- --\
+  | sed -e 'N;s/\n/ /g' -r -e  's|:tag: ([^ ]*) :stats: (.*)|\1,\2|g')
+
+  # default mode
+  declare MODE=go
+
+  while [[ $# -gt 0 ]]; do
+
+    case "$1" in
+      utils)    MODE="$1" ;;
+      headers)  MODE="$1" ;;
+      keywords) MODE="$1" ;;
+      notation) MODE="$1" ;;
+      quests)   MODE="$1" ;;
+      comments) MODE="$1" ;;
+      paths) MODE="$1" ;;
+      *) declare ARG=$1; shift; }
+    esac
+
+    if [[ $MODE == utils ]]; then
+      cat <<-EOF
+	ark() {
+	  cd
+	}
+EOF

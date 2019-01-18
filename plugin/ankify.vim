@@ -1,4 +1,4 @@
-if exists('g:archive_options_loaded')
+if exists('g:ankify_vim_loaded')
   finish
 endif
 
@@ -13,7 +13,8 @@ function! s:Pecho(msg)
   aug END
 endfunction
 
-source './mappings.vim'
-source './statistics.vim'
 
-let g:archive_options_loaded = v:true
+
+command AnkifyInstallUtils execute 'normal! !cp '.s:plugindir.'../tools/arkutil.sh /usr/local/bin/arkutil'
+
+let g:ankify_vim_loaded = v:true

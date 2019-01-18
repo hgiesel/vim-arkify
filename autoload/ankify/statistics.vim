@@ -1,5 +1,5 @@
 """""""""""""""""""" Print meta information """""""""""""""""""
-function! AdocPrintMetaReadme()
+function! AnkifyPrintMetaReadme()
   let l:view = winsaveview()
   let b:topic = expand("%:p:h:t")
 
@@ -23,8 +23,8 @@ function! AdocPrintMetaReadme()
     let b:accum_content_lines = system('command grep -rPho ''(?<=\:stats\: ).*'' $(find $ARCHIVE_PATH -type f -mindepth 2 -name ''README.*'') | tail -n +2 | cut -d, -f1 | paste -sd ''+'' - | bc | tr -d ''\r\n''')
     let b:accum_qtags = system('command grep -rPho ''(?<=\:stats\: ).*'' $(find $ARCHIVE_PATH -type f -mindepth 2 -name ''README.*'') | tail -n +2 | cut -d, -f2 | paste -sd ''+'' - | bc | tr -d ''\r\n''')
   else
-    let b:accum_content_lines = system('command grep --exclude README.adoc -rPho ''(?<=:stats: ).*'' | cut -d, -f1 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
-    let b:accum_qtags = system('command grep --exclude README.adoc -rPho ''(?<=:stats: ).*'' | cut -d, -f2 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
+    let b:accum_content_lines = system('command grep --exclude README.* -rPho ''(?<=:stats: ).*'' | cut -d, -f1 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
+    let b:accum_qtags = system('command grep --exclude README.* -rPho ''(?<=:stats: ).*'' | cut -d, -f2 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
   endif
 
   if b:accum_content_lines == ''
@@ -40,7 +40,7 @@ function! AdocPrintMetaReadme()
   call winrestview(l:view)
 endfunction
 
-function! AdocPrintMeta()
+function! AnkifyPrintMeta()
   let l:view = winsaveview()
   let b:topic = expand('%:p:h:t')
 
@@ -151,6 +151,6 @@ function! AdocPrintMeta()
   call winrestview(l:view)
 endfunction
 
-" autocmd BufWritePre *.adoc call AdocPrintMeta()
-autocmd BufEnter,BufWrite *.adoc call AdocPrintMeta()
-autocmd QuitPre */README.adoc call AdocPrintMetaReadme()
+" autocmd BufWritePre *.* call AnkifyPrintMeta()
+autocmd BufEnter,BufWrite *.* call AnkifyPrintMeta()
+autocmd QuitPre */README.* call AnkifyPrintMetaReadme()

@@ -1,4 +1,4 @@
-= vim-archive
+= vim-ankify
 
 == Features of this plugin
 

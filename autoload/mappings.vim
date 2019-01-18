@@ -28,7 +28,7 @@ function! mappings#copy(mode)
     elseif a:mode == 'a'
       let l:view = winsaveview()
       execute 'normal! "ayip'
-      let l:entry = substitute(substitute(substitute(@a,'\%x00','<br/>',""),'"','\"',""),'\','\\',"")
+      let l:entry = substitute(substitute(substitute(@a,'\%x00','<br/>',"g"),'"','\"',"g"),'\','\\',"g")
       echom l:entry
       call winrestview(l:view)
       echom 'curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'

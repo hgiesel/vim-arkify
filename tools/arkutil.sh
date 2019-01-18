@@ -3,6 +3,7 @@
 arkutil_analyze_path() {
   ######################### PROCESSING OF $ARG: SETTING TOPIC_*
   declare ARG=$1
+  VERBOSE=t
 
   declare TOPIC_DEF=t
   declare TOPIC_ARG=${ARG%%::*}
@@ -243,6 +244,8 @@ execute_command() {
 [[ ! $ARCHIVE_ROOT ]] && { echo '$ARCHIVE_ROOT is not set!';  exit 1; }
 
 [[ $# -lt 1 || $# -gt 2 ]] && { echo 'arkutil needs 1 to 2 arguments!';  exit 2; } 
+
+VERBOSE=t
 
 declare MODE=
 case "$1" in

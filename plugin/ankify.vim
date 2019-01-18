@@ -27,6 +27,26 @@ endfunction
 
 command AnkifyInstallUtils call <sid>ankify_install_utils()
 
+" Global variables
+let g:ankify_deckName   = 'head'
+let g:ankify_modelName  = 'Cloze (overlapping)'
+let g:ankify_mainField  = 'Quest'
+" unimplemented
+let g:ankify_questField = 'Cloze (overlapping)'
+
+" Plugs
+nmap <silent> <Plug>(AnkifyNextFile) :call AnkifyJumpToFile(1)<cr>
+nmap <silent> <Plug>(AnkifyPrevFile) :call AnkifyJumpToFile(-1)<cr>
+
+nmap <silent> <Plug>(AnkifyCopyFullyQualifiedTag) :call AnkifyCopy('t')<cr>
+nmap <silent> <Plug>(AnkifyCopyFtag) :call AnkifyCopy('f')<cr>
+nmap <silent> <Plug>(AnkifyCopyBlock) vip:s/\[\[oc\d::\(\_.\{-}\)\(::[^:]*\)\?\]\]/\1/ge<cr>"+yip
+nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call AnkifyCopy('q')<cr>
+nmap <silent> <Plug>(AnkifyAnkiQuery) :call AnkifyCopy('v')<cr>
+nmap <silent> <Plug>(AnkifyAnkiAddCard) :call AnkifyCopy('a')<cr>
+
+nmap <silent> <Plug>(AnkifyInsertTag) :call AnkifyInsert('t')<cr>
+
 nmap <silent> <localleader>f <Plug>(AnkifyNextFile)
 nmap <silent> <localleader>F <Plug>(AnkifyPrevFile)
 
@@ -42,5 +62,8 @@ nmap <silent> <localleader>i <Plug>AnkifyInsertTag
 " b: count up (n characters long)
 " c: random number (n characters long)
 
+" autocmd BufWritePre *.* call AnkifyPrintMeta()
+autocmd BufEnter,BufWrite $ARCHIVE_PATH/*.* call AnkifyPrintMeta()
+autocmd QuitPre $ARCHIVE_PATH/*/README.* call AnkifyPrintMetaReadme()
 
 let g:ankify_vim_loaded = v:true

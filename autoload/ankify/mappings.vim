@@ -43,26 +43,6 @@ function! ankify#mappings#copy(mode)
   endif
 endfunction
 
-let g:ankify_deckName   = 'head'
-let g:ankify_modelName  = 'Cloze (overlapping)'
-let g:ankify_mainField  = 'Quest'
-" unimplemented
-let g:ankify_questField = 'Cloze (overlapping)'
-
-call jobstart('curl localhost:8765 -X POST -d ''{"action":"guiAddCards","version":6,"params":{"note": "'.l:qq.'"}}''')
-
-nmap <silent> <Plug>(AnkifyNextFile) :call AnkifyJumpToFile(1)<cr>
-nmap <silent> <Plug>(AnkifyPrevFile) :call AnkifyJumpToFile(-1)<cr>
-
-nmap <silent> <Plug>(AnkifyCopyFullyQualifiedTag) :call AnkifyCopy('t')<cr>
-nmap <silent> <Plug>(AnkifyCopyFtag) :call AnkifyCopy('f')<cr>
-nmap <silent> <Plug>(AnkifyCopyBlock) vip:s/\[\[oc\d::\(\_.\{-}\)\(::[^:]*\)\?\]\]/\1/ge<cr>"+yip
-nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call AnkifyCopy('q')<cr>
-nmap <silent> <Plug>(AnkifyAnkiQuery) :call AnkifyCopy('v')<cr>
-nmap <silent> <Plug>(AnkifyAnkiAddCard) :call AnkifyCopy('a')<cr>
-
-nmap <silent> <Plug>(AnkifyInsertTag) :call AnkifyInsert('t')<cr>
-
 function! ankify#mappings#insert(mode)
   if !empty(b:qtags_unique)
     execute 'normal! 0Di:'.(b:qtags_unique[-1] + 1).':'

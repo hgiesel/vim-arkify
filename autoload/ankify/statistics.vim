@@ -150,7 +150,3 @@ function! AnkifyPrintMeta()
 
   call winrestview(l:view)
 endfunction
-
-" autocmd BufWritePre *.* call AnkifyPrintMeta()
-autocmd BufEnter,BufWrite *.* call AnkifyPrintMeta()
-autocmd QuitPre */README.* call AnkifyPrintMetaReadme()

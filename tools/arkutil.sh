@@ -250,6 +250,10 @@ case "$1" in
   paths)    MODE="$1" ;;
 
   stats)    MODE="$1" ;;
+
+  refs)     MODE="$1" ;;
+  backrefs) MODE="$1" ;;
+
   headers)  MODE="$1" ;;
   keywords) MODE="$1" ;;
   notation) MODE="$1" ;;

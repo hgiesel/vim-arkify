@@ -140,13 +140,13 @@ function! meta#leaf()
   """ print out any errors
   """ i.e. items in b:qtags_duplicate, or dangling references
   if !empty(b:qtags_duplicate)
-    call s:Pecho('Duplicate tags: '.string(b:qtags_duplicate))
+    call Pecho('Duplicate tags: '.string(b:qtags_duplicate))
   elseif !empty(b:qtag_references_dangling)
-    call s:Pecho('Dangling qtag references: '.string(b:qtag_references_dangling))
+    call Pecho('Dangling qtag references: '.string(b:qtag_references_dangling))
   elseif !empty(b:file_references_dangling)
-    call s:Pecho('Dangling file references: '.string(b:file_references_dangling))
+    call Pecho('Dangling file references: '.string(b:file_references_dangling))
   else
-    call s:Pecho('')
+    call Pecho('')
   endif
 
   call winrestview(l:view)

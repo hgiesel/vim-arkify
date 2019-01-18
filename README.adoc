@@ -1,1 +1,62 @@
 = vim-archive
+
+== Features of this plugin
+
+* This plugin can be separated into three parts:
+.. Mappings for vim to work with anki and tags
+.. Autocmds to generate metainformation of files
+.. the `arkutil` shell executable, and `ark` shell function
+
+== Hierarchy of files
+
+* $ARCHIVE_PATH/README.* < topic/README.* < topic/*.*
+
+----
+group-theory::group-like#5
+group-theory::group-like+5
+----
+
+==  LEGEND
+
+# PATHS [SUMMARY] ; MULTIPLE ; INDIVIDUAL #####
+#############
+# VARIABLES: $TOPIC_ARG | $SUBTOPIC_ARG | $SUBTOPIC_STEM_INDEX | $QUEST_ARG | $MULTIPLE
+# x -> variable is defined; o -> only $*_DEF is defined; both is possible
+############# LEGEND END
+# .topic
+# * ark             | notes/README.*    -> summary of topics            |o|||||
+# * ark @            | notes/**/README.* -> all topics                   |o||||x|
+# * ark topic        | notes/**/topic*/README   -> specific topic        |x|||||
+#
+# .subtopic
+# * ark topic::      | notes/**/topic*/README.*              -> summary of subtopics |x|o||||
+# * ark topic::@     | notes/**/topic*/*.*    (excl. README) -> all subtopics        |x|o|||x|
+# * ark topic::sub   | notes/**/topic*/sub*.* (excl. README) -> specific subtopic    |x|x||||
+#
+# .subtopic-series (requires file to actually part of a series)
+# * ark topic::sub-@  | notes/**/topic*/sub*-\d.* (excl.README) -> all of subtopic series |x|x|o||x|
+# * ark topic::sub-5  | notes/**/topic*/sub*-5.*  (excl.README) -> specific subtopic      |x|x|x|||
+#
+# .quest
+# * ark topic::sub:@:  | notes/**/topic*/sub*.* -> all of quest tags  |x|x|?|||
+# * ark topic::sub:1:  | notes/**/topic*/sub*.* -> specific quest tag |x|x|?|x||
+#####
+
+##### `go`
+# with topic argument: opens directory
+# with subtopic/subtopic-series argument: opens file
+# with quest argument: opens file at specific spot
+
+# with summary:
+# with list: decays to alphabetically first element of list
+# with individual:
+#####
+
+##### `stats`
+# with summary:
+# with list:
+# with individual:
+#####
+
+##### `update`
+# `update`: ignores path

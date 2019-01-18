@@ -1,7 +1,11 @@
+#!/usr/bin/env bash
+
 arkutil_analyze_path() {
   ######################### PROCESSING OF $ARG: SETTING TOPIC_*
+  declare ARG=$1
+
   declare TOPIC_DEF=t
-  [[ $ARG ]] && declare TOPIC_ARG=${ARG%%::*}
+  declare TOPIC_ARG=${ARG%%::*}
 
   if [[ $ARG =~ .+::?.* ]]; then
     declare SUBTOPIC_DEF=t
@@ -32,7 +36,7 @@ arkutil_analyze_path() {
   ######################### PROCESSING OF $ARG: SETTING SUBTOPIC_EXPANDED
   if [[ $SUBTOPIC_DEF && $MULTIPLE ]]; then
     echo "Can't use Subtopic without definite Topic!"
-    return 14
+    exit 14
   fi
 
   if [[ $SUBTOPIC_ARG == '@' ]]; then
@@ -58,7 +62,7 @@ arkutil_analyze_path() {
   ######################### PROCESSING OF $ARG: PROCESSING OF QUEST_ARG
   if [[ $QUEST_DEF && $MULTIPLE ]]; then
     echo "Can't use multiple MULTIPLE signifiers!"
-    return 15
+    exit 15
   fi
 
   if [[ $QUEST_ARG == '@' ]]; then
@@ -89,26 +93,26 @@ arkutil_analyze_path() {
 
   set -- $TOPIC_SELECTED
   [[ $# -gt 1 ]]\
-    && { echo "Topic ambiguous:" $TOPIC_SELECTED ; return 10; }
+    && { echo "Topic ambiguous:" $TOPIC_SELECTED ; exit 10; }
   [[ "$TOPIC_EXP" =~ (${NEWTOPICS%|}) ]]\
-    || { echo "Topic not found!"; return 11; }
+    || { echo "Topic not found!"; exit 11; }
 
   set -- $SUBTOPIC_EXP
   [[ $# -gt 1 ]] &&\
     {
       echo "Subtopic ambiguous:" $(sed -e 's|.*/||' -e 's|\..*||' <<< $SUBTOPIC_EXP) ;
-      return 20;
+      exit 20;
     }
   [[ $SUBTOPIC_ARG && ! $MULTIPLE && -z "$SUBTOPIC_EXP" ]]\
-    && { echo "Subtopic does not exist!"; return 21; }
+    && { echo "Subtopic does not exist!"; exit 21; }
 
   [[ $QUEST_DEF && ! $MULTIPLE && ! $QUEST_EXP =~ [[:digit:]][[:digit:]]* ]]\
-    && { echo "Quest tag must be an integer greater zero: $QUEST_ARG"; return 30; }
+    && { echo "Quest tag must be an integer greater zero: $QUEST_ARG"; exit 30; }
   [[ $QUEST_DEF ]] && ! grep -q "^:${QUEST_EXP:-[0-9]\+}[a-z]*:$" $SUBTOPIC_EXP\
-    && { echo "Quest tag(s) doesn't exist in file"; return 31; }
+    && { echo "Quest tag(s) doesn't exist in file"; exit 31; }
 
   [[ $VERBOSE ]] && echo "--------- Survived scrutinization! ---------"
-  [[ $DRYRUN ]] && return 0
+  [[ $DRYRUN ]] && exit 0
 }
 
 execute_command() {
@@ -137,14 +141,14 @@ execute_command() {
         command grep -rPh -B1 '(?=:stats: ).*' "$ARCHIVE_PATH/README".*\
           | command grep -v -- --\
           | sed -e 'N;s/\n/ /g' -re  's|:tag: (.*) :stats: (.*)|\1,\2|g' ;;
-      *) echo "\"$MODE\" mode doesn't work with topic overviews!"; return 50 ;;
+      *) echo "\"$MODE\" mode doesn't work with topic overviews!"; exit 50 ;;
     esac
 
   elif [[ ! $TOPIC_EXP ]]; then
     case $MODE in
       go) cd "$ARCHIVE_PATH" ;;
       stats) echo $TOPICS | tr ' ' '\n' | command grep -v "^$(dirname $ARCHIVE_PATH)" ;;
-      *) echo "\"$MODE\" mode doesn't work with multiple topics!"; return 51 ;;
+      *) echo "\"$MODE\" mode doesn't work with multiple topics!"; exit 51 ;;
     esac
 
   elif [[ ! $SUBTOPIC_DEF ]]; then
@@ -153,7 +157,7 @@ execute_command() {
       stats) command grep -rPh -B1 '(?=:stats: ).*' "$TOPIC_EXP/README".*\
         | sed -e 'N;s/\n/ /g' -re  's|:tag: (.*) :stats: (.*)|\1,\2|g' ;;
       assets) mkdir -p "$TOPIC_EXP/assets"; open -a 'Finder' "$TOPIC_EXP/assets" ;;
-      *) echo "\"$MODE\" mode doesn't work with individual topics!"; return 52 ;;
+      *) echo "\"$MODE\" mode doesn't work with individual topics!"; exit 52 ;;
     esac
 
   ######################### COMMANDS WITH SUBTOPIC ARGUMENT
@@ -162,7 +166,7 @@ execute_command() {
       go) $EDITOR ${SUBTOPIC_EXP:-$TOPIC_EXP/README.*} ;;
       stats) command grep -rPh -B1 '(?=:stats: ).*' "$TOPIC_EXP/README".*\
         | sed -e 'N;s/\n/ /g' -re  's|:tag: (.*) :stats: (.*)|\1,\2|g' ;;
-      *) echo "\"$MODE\" mode doesn't work with subtopic overviews!"; return 53 ;;
+      *) echo "\"$MODE\" mode doesn't work with subtopic overviews!"; exit 53 ;;
     esac
 
   elif [[ ! $SUBTOPIC_EXP || (! $QUEST_DEF && $MULTIPLE ) ]]; then
@@ -188,7 +192,7 @@ execute_command() {
       assets) command grep -noHRE '^(image|include|video)::.*' "$TOPIC_EXP/$SUBTOPIC_STEM"*\
         | command grep -v 'assets'\
         | sed -E -e 's|^[^:]*/||' -e 's|\.[^:]*:([[:digit:]]+):|,\1,|' ;;
-      *) echo "\"$MODE\" mode doesn't work with multiple subtopics"; return 54 ;;
+      *) echo "\"$MODE\" mode doesn't work with multiple subtopics"; exit 54 ;;
     esac
 
   elif [[ ! $QUEST_DEF ]]; then
@@ -212,49 +216,60 @@ execute_command() {
       quests) command grep -noH '^:.*:$' "$SUBTOPIC_EXP"\
         | command grep -v 'assets'\
         | sed -E -e 's|^[^:]*/||' -e 's|\.[^:]*:([[:digit:]]+):|,\1,|' ;;
-      *) echo "\"$MODE\" mode doesn't work with individual subtopics!"; return 55 ;;
+      *) echo "\"$MODE\" mode doesn't work with individual subtopics!"; exit 55 ;;
     esac
 
   ######################### COMMANDS WITH QUEST ARGUMENT
   elif [[ $MULTIPLE ]]; then
     case $MODE in
       go) $EDITOR "$SUBTOPIC_EXP" -c "/^:${QUEST_EXP:-\d\+}\a*:$/" -c 'normal! zz' ;;
-      *) echo "\"$MODE\" mode doesn't work with multiple quest tags"; return 56 ;;
+      *) echo "\"$MODE\" mode doesn't work with multiple quest tags"; exit 56 ;;
     esac
 
   else
     case $MODE in
       go) $EDITOR "$SUBTOPIC_EXP" -c "/^:${QUEST_EXP:-\d\+}\a*:$/" -c 'normal! zz' ;;
-      *) echo "\"$MODE\" mode doesn't work with individual question tags"; return 57 ;;
+      *) echo "\"$MODE\" mode doesn't work with individual question tags"; exit 57 ;;
     esac
   fi
 }
 
-[[ ! $ARCHIVE_ROOT ]] && echo 'No $ARCHIVE_PATH is set!' && return 1
+# declare TOPICS=$(command grep -rPh -B1 '(?=:stats: ).*' $(find $ARCHIVE_PATH -type f -name 'README.*')\
+#   | command grep -v -- --\
+#   | sed -e 'N;s/\n/ /g' -r -e  's|:tag: ([^ ]*) :stats: (.*)|\1,\2|g')
 
-declare TOPICS=$(command grep -rPh -B1 '(?=:stats: ).*' $(find $ARCHIVE_PATH -type f -name 'README.*')\
-  | command grep -v -- --\
-  | sed -e 'N;s/\n/ /g' -r -e  's|:tag: ([^ ]*) :stats: (.*)|\1,\2|g')
 
-  # default mode
-  declare MODE=go
+### HANDLING OF OPTIONS
+[[ ! $ARCHIVE_ROOT ]] && { echo '$ARCHIVE_ROOT is not set!';  exit 1; }
 
-  while [[ $# -gt 0 ]]; do
+[[ $# -lt 1 || $# -gt 2 ]] && { echo 'arkutil needs 1 to 2 arguments!';  exit 2; } 
 
-    case "$1" in
-      utils)    MODE="$1" ;;
-      headers)  MODE="$1" ;;
-      keywords) MODE="$1" ;;
-      notation) MODE="$1" ;;
-      quests)   MODE="$1" ;;
-      comments) MODE="$1" ;;
-      paths) MODE="$1" ;;
-      *) declare ARG=$1; shift; }
-    esac
+declare MODE=
+case "$1" in
+  ark)      MODE="$1" ;;
+  paths)    MODE="$1" ;;
 
-    if [[ $MODE == utils ]]; then
-      cat <<-EOF
-	ark() {
-	  cd
-	}
+  stats)    MODE="$1" ;;
+  headers)  MODE="$1" ;;
+  keywords) MODE="$1" ;;
+  notation) MODE="$1" ;;
+  quests)   MODE="$1" ;;
+  comments) MODE="$1" ;;
+  *) echo 'Illegal command!';  exit 3 ;;
+esac
+
+[[ $2 ]] && declare ARG=${2:-''}
+
+if [[ $MODE == 'ark' ]]; then
+  cat <<-'EOF'
+ark() {
+  cd $ARCHIVE_ROOT
+}
 EOF
+else
+  declare TOPIC_EXP=
+  declare SUBTOPIC_EXP=
+  declare QUEST_EXP=
+  declare MULTIPLE=
+  arkutil_analyze_path $ARG
+fi

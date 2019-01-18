@@ -13,9 +13,16 @@ function! s:Pecho(msg)
   aug END
 endfunction
 
+let s:plugindir = expand('<sfile>:p:h:h')
+
 function! s:ankify_install_utils()
-  let s:plugindir = expand('<sfile>:p:h:h')
-  call system('cp '.s:plugindir.'/../tools/arkutil.sh /usr/local/bin/arkutil')
+  let x =  writefile(readfile(s:plugindir.'/tools/arkutil.sh', 'b'), '/usr/local/bin/arkutil', 'b')
+
+  if x == -1
+    echo 'Error writing to /usr/local/bin/arkutil'
+  else
+    echo 'Successfully written to /usr/local/bin/arkutil'
+  endif
 endfunction
 
 command AnkifyInstallUtils call <sid>ankify_install_utils()

@@ -27,4 +27,20 @@ endfunction
 
 command AnkifyInstallUtils call <sid>ankify_install_utils()
 
+nmap <silent> <localleader>f <Plug>(AnkifyNextFile)
+nmap <silent> <localleader>F <Plug>(AnkifyPrevFile)
+
+nmap <silent> <localleader>t <Plug>(AnkifyCopyFullyQualifiedTag)
+nmap <silent> <localleader>T <Plug>(AnkifyCopyFtag)
+nmap <silent> <localleader>q <Plug>(AnkifyCopyAnkiQuery)
+nmap <silent> <localleader>v <Plug>(AnkifyAnkiQuery)
+nmap <silent> <localleader>a <Plug>(AnkifyCopyBlock)
+
+nmap <silent> <localleader>i <Plug>AnkifyInsertTag
+" TODO should be configurable on what tags should look like
+" a: count up
+" b: count up (n characters long)
+" c: random number (n characters long)
+
+
 let g:ankify_vim_loaded = v:true

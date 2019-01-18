@@ -1,6 +1,5 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
-
-function! ankify#jumpToFile(i)
+function! ankify#mappings#jumpToFile(i)
   let currentFile = expand('%:t')
   " get the number of the end of file name
   let index = string(str2nr(currentFile[strlen(currentFile) - 6]) + a:i)
@@ -11,13 +10,7 @@ function! ankify#jumpToFile(i)
   endif
 endfunction
 
-nmap <silent> <Plug>(AnkifyNextFile) :call AnkifyJumpToFile(1)<cr>
-nmap <silent> <Plug>(AnkifyPrevFile) :call AnkifyJumpToFile(-1)<cr>
-
-nmap <silent> <localleader>f <Plug>(AnkifyNextFile)
-nmap <silent> <localleader>F <Plug>(AnkifyPrevFile)
-
-function! AnkifyCopy(mode)
+function! ankify#mappings#copy(mode)
   if a:mode == 'f'
     let @+=(b:ftag)
     return
@@ -58,6 +51,9 @@ let g:ankify_questField = 'Cloze (overlapping)'
 
 call jobstart('curl localhost:8765 -X POST -d ''{"action":"guiAddCards","version":6,"params":{"note": "'.l:qq.'"}}''')
 
+nmap <silent> <Plug>(AnkifyNextFile) :call AnkifyJumpToFile(1)<cr>
+nmap <silent> <Plug>(AnkifyPrevFile) :call AnkifyJumpToFile(-1)<cr>
+
 nmap <silent> <Plug>(AnkifyCopyFullyQualifiedTag) :call AnkifyCopy('t')<cr>
 nmap <silent> <Plug>(AnkifyCopyFtag) :call AnkifyCopy('f')<cr>
 nmap <silent> <Plug>(AnkifyCopyBlock) vip:s/\[\[oc\d::\(\_.\{-}\)\(::[^:]*\)\?\]\]/\1/ge<cr>"+yip
@@ -65,13 +61,9 @@ nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call AnkifyCopy('q')<cr>
 nmap <silent> <Plug>(AnkifyAnkiQuery) :call AnkifyCopy('v')<cr>
 nmap <silent> <Plug>(AnkifyAnkiAddCard) :call AnkifyCopy('a')<cr>
 
-nmap <silent> <localleader>t <Plug>(AnkifyCopyFullyQualifiedTag)
-nmap <silent> <localleader>T <Plug>(AnkifyCopyFtag)
-nmap <silent> <localleader>q <Plug>(AnkifyCopyAnkiQuery)
-nmap <silent> <localleader>v <Plug>(AnkifyAnkiQuery)
-nmap <silent> <localleader>a <Plug>(AnkifyCopyBlock)
+nmap <silent> <Plug>(AnkifyInsertTag) :call AnkifyInsert('t')<cr>
 
-function! AnkifyInsert(mode)
+function! ankify#mappings#insert(mode)
   if !empty(b:qtags_unique)
     execute 'normal! 0Di:'.(b:qtags_unique[-1] + 1).':'
   else
@@ -81,11 +73,3 @@ function! AnkifyInsert(mode)
   silent write
   call AdocPrintMeta()
 endfunction
-
-nmap <silent> <Plug>(AnkifyInsertTag) :call AnkifyInsert('t')<cr>
-
-nmap <silent> <localleader>i <Plug>AnkifyInsertTag
-" TODO should be configurable on what tags should look like
-" a: count up
-" b: count up (n characters long)
-" c: random number (n characters long)

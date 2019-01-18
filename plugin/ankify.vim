@@ -13,10 +13,15 @@ function! s:Pecho(msg)
   aug END
 endfunction
 
-
 let s:plugindir = expand('<sfile>:p:h:h')
+function! s:ankify_dir()
+  return s:plugindir
+endfunction
 
-command AnkifyInstallUtils execute 'normal! !cp '.s:plugindir
+nnoremap <space> :echo <SID>GetTestVar()<cr>
+
+
+command AnkifyInstallUtils execute 'normal! !cp '.<sid>ankify_dir()
       \ '../tools/arkutil.sh /usr/local/bin/arkutil'
 
 let g:ankify_vim_loaded = v:true

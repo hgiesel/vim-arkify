@@ -19,10 +19,6 @@ function! s:ankify_get_dir()
   return s:plugindir
 endfunction
 
-function! s:ankify_install_utils()
-  execute system('cp '.<sid>ankify_get_dir().'/../tools/arkutil.sh /usr/local/bin/arkutil')
-endfunction
-
-command AnkifyInstallUtils call <sid>ankify_dir()
+execute 'command AnkifyInstallUtils call system("cp '.<sid>ankify_get_dir().'/../tools/arkutil.sh /usr/local/bin/arkutil")'
 
 let g:ankify_vim_loaded = v:true

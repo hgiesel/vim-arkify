@@ -28,7 +28,7 @@ endfunction
 command AnkifyInstallUtils call <sid>ankify_install_utils()
 
 " Global variables
-let g:ankify_deckName   = 'head'
+let g:ankify_deckName   = 'misc::head'
 let g:ankify_modelName  = 'Cloze (overlapping)'
 let g:ankify_mainField  = 'Quest'
 " unimplemented

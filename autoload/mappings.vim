@@ -28,17 +28,14 @@ function! mappings#copy(mode)
     elseif a:mode == 'a'
       let l:view = winsaveview()
       execute 'normal! "ayip'
-      let l:entry = substitute(substitute(substitute(@a,'\%x00','<br/>',"g"),'"','\"',"g"),'\','\\',"g")
-      echom l:entry
+      let entry = substitute(substitute(substitute(@a,'\%x00','<br/>',"g"),'"','\"',"g"),'\','\\',"g")
+      echom entry
       call winrestview(l:view)
-      echom 'curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'
-            \ '"note": { "deckName": "'.(g:ankify_deckName).'", "modelName": "'.(g:ankify_modelName).'",'
-            \ '"fields": { "'.(g:ankify_mainField).'": "'.(l:entry).'"},'
-            \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }'''
-      call system('curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'
-            \ '"note": { "deckName": "'.(g:ankify_deckName).'", "modelName": "'.(g:ankify_modelName).'",'
-            \ '"fields": { "'.(g:ankify_mainField).'": "'.(@a).'"},'
-            \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }''')
+      " echom 'curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'
+      "       \ '"note": { "deckName": "'.(g:ankify_deckName).'", "modelName": "'.(g:ankify_modelName).'",'
+      "       \ '"fields": { "'.(g:ankify_mainField).'": "'.(l:entry).'"},'
+      "       \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }'''
+      echo system('curl localhost:8765 -X POST -d ''{"action": "guiAddCards","version":6, "params":{"note":{"deckName": "'.(g:ankify_deckName).'", "modelName":"'.(g:ankify_modelName).'", "fields":{"'.(g:ankify_mainField).'":"'.(entry).'"}, "options": {"closeAfterAdding": true}, "tags": [ "'.(b:ftag).'" ] }}}''')
 
     elseif a:mode == 't'
       let @+=(b:ftag).(getline('.'))

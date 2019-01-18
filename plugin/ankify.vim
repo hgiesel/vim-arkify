@@ -35,15 +35,15 @@ let g:ankify_mainField  = 'Quest'
 let g:ankify_questField = 'Cloze (overlapping)'
 
 " Plugs
-nmap <silent> <Plug>(AnkifyNextFile) :call ankify#mappings#jumpRelative(1)<cr>
-nmap <silent> <Plug>(AnkifyPrevFile) :call ankify#mappings#jumpRelative(-1)<cr>
+nmap <silent> <Plug>(AnkifyNextFile) :call mappings#jumpRelative(1)<cr>
+nmap <silent> <Plug>(AnkifyPrevFile) :call mappings#jumpRelative(-1)<cr>
 
-nmap <silent> <Plug>(AnkifyCopyFullyQualifiedTag) :call AnkifyCopy('t')<cr>
-nmap <silent> <Plug>(AnkifyCopyFtag) :call AnkifyCopy('f')<cr>
+nmap <silent> <Plug>(AnkifyCopyFullyQualifiedTag) :call mappings#copy('t')<cr>
+nmap <silent> <Plug>(AnkifyCopyFtag) :call mappings#copy('f')<cr>
 nmap <silent> <Plug>(AnkifyCopyBlock) vip:s/\[\[oc\d::\(\_.\{-}\)\(::[^:]*\)\?\]\]/\1/ge<cr>"+yip
-nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call AnkifyCopy('q')<cr>
-nmap <silent> <Plug>(AnkifyAnkiQuery) :call AnkifyCopy('v')<cr>
-nmap <silent> <Plug>(AnkifyAnkiAddCard) :call AnkifyCopy('a')<cr>
+nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call mappings#copy('q')<cr>
+nmap <silent> <Plug>(AnkifyAnkiQuery) :call mappings#copy('v')<cr>
+nmap <silent> <Plug>(AnkifyAnkiAddCard) :call mappings#copy('a')<cr>
 
 nmap <silent> <Plug>(AnkifyInsertTag) :call AnkifyInsert('t')<cr>
 
@@ -56,14 +56,14 @@ nmap <silent> <localleader>q <Plug>(AnkifyCopyAnkiQuery)
 nmap <silent> <localleader>v <Plug>(AnkifyAnkiQuery)
 nmap <silent> <localleader>a <Plug>(AnkifyCopyBlock)
 
-nmap <silent> <localleader>i <Plug>AnkifyInsertTag
+nmap <silent> <localleader>i <Plug>mappings#insertTag
 " TODO should be configurable on what tags should look like
 " a: count up
 " b: count up (n characters long)
 " c: random number (n characters long)
 
 " autocmd BufWritePre *.* call AnkifyPrintMeta()
-autocmd BufEnter,BufWrite $ARCHIVE_PATH/*.* call AnkifyPrintMeta()
-autocmd QuitPre $ARCHIVE_PATH/*/README.* call AnkifyPrintMetaReadme()
+autocmd BufEnter,BufWrite $ARCHIVE_PATH/*.* call meta#leaf()
+autocmd QuitPre $ARCHIVE_PATH/*/README.* call meta#readme()
 
 let g:ankify_vim_loaded = v:true

@@ -1,5 +1,5 @@
 """""""""""""""""""" Print meta information """""""""""""""""""
-function! ankify#statistics#readme()
+function! meta#readme()
   let l:view = winsaveview()
   let b:topic = expand("%:p:h:t")
 
@@ -21,7 +21,9 @@ function! ankify#statistics#readme()
 
   if b:topic == system('basename $(ARCHIVE_PATH)')
     let b:accum_content_lines = system('command grep -rPho ''(?<=\:stats\: ).*'' $(find $ARCHIVE_PATH -type f -mindepth 2 -name ''README.*'') | tail -n +2 | cut -d, -f1 | paste -sd ''+'' - | bc | tr -d ''\r\n''')
-    let b:accum_qtags = system('command grep -rPho ''(?<=\:stats\: ).*'' $(find $ARCHIVE_PATH -type f -mindepth 2 -name ''README.*'') | tail -n +2 | cut -d, -f2 | paste -sd ''+'' - | bc | tr -d ''\r\n''')
+    let b:accum_qtags = system('command grep -rPho ''(?<=\:stats\: ).*'''
+          \ '$(find $ARCHIVE_PATH -type f -mindepth 2 -name ''README.*'') |'
+          \ 'tail -n +2 | cut -d, -f2 | paste -sd ''+'' - | bc | tr -d ''\r\n''')
   else
     let b:accum_content_lines = system('command grep --exclude README.* -rPho ''(?<=:stats: ).*'' | cut -d, -f1 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
     let b:accum_qtags = system('command grep --exclude README.* -rPho ''(?<=:stats: ).*'' | cut -d, -f2 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
@@ -40,21 +42,20 @@ function! ankify#statistics#readme()
   call winrestview(l:view)
 endfunction
 
-function! ankify#print#leaf()
-  let l:view = winsaveview()
+function! meta#leaf()
   let b:topic = expand('%:p:h:t')
+  let b:file_references = []
+  let b:content_lines   = 0
+  let l:qtags           = []
+  let l:extLines        = ''
 
   if expand("%:r") == 'README'
     return 5
   endif
+  let l:view = winsaveview()
 
   """ populate qtags, extLines, content_lines
   call cursor([3,1])
-
-  let l:qtags           = []
-  let b:file_references = []
-  let l:extLines        = ''
-  let b:content_lines   = 0
 
   let l:moreLinesToGo = v:true
 

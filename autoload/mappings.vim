@@ -1,5 +1,5 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
-function! ankify#mappings#jumpRelative(i)
+function! mappings#jumpRelative(i)
   let currentFile = expand('%:t')
   " get the number of the end of file name
   let index = string(str2nr(currentFile[strlen(currentFile) - 6]) + a:i)
@@ -10,7 +10,7 @@ function! ankify#mappings#jumpRelative(i)
   endif
 endfunction
 
-function! ankify#mappings#copy(mode)
+function! mappings#copy(mode)
   if a:mode == 'f'
     let @+=(b:ftag)
     return
@@ -43,7 +43,7 @@ function! ankify#mappings#copy(mode)
   endif
 endfunction
 
-function! ankify#mappings#insert(mode)
+function! mappings#insertTag(mode)
   if !empty(b:qtags_unique)
     execute 'normal! 0Di:'.(b:qtags_unique[-1] + 1).':'
   else
@@ -51,5 +51,5 @@ function! ankify#mappings#insert(mode)
   endif
 
   silent write
-  call AdocPrintMeta()
+  call statistics#printLeaf()
 endfunction

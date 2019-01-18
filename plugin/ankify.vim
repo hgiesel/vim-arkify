@@ -13,12 +13,11 @@ function! s:Pecho(msg)
   aug END
 endfunction
 
-let s:plugindir = expand('<sfile>:p:h:h')
-
-function! s:ankify_get_dir()
-  return s:plugindir
+function! s:ankify_install_utils()
+  let s:plugindir = expand('<sfile>:p:h:h')
+  call system('cp '.s:plugindir.'/../tools/arkutil.sh /usr/local/bin/arkutil')
 endfunction
 
-execute 'command AnkifyInstallUtils call system("cp '.<sid>ankify_get_dir().'/../tools/arkutil.sh /usr/local/bin/arkutil")'
+command AnkifyInstallUtils call s:ankify_install_utils
 
 let g:ankify_vim_loaded = v:true

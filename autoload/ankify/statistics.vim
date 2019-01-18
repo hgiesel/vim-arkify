@@ -1,5 +1,5 @@
 """""""""""""""""""" Print meta information """""""""""""""""""
-function! AnkifyPrintMetaReadme()
+function! ankify#statistics#readme()
   let l:view = winsaveview()
   let b:topic = expand("%:p:h:t")
 
@@ -40,7 +40,7 @@ function! AnkifyPrintMetaReadme()
   call winrestview(l:view)
 endfunction
 
-function! AnkifyPrintMeta()
+function! ankify#print#leaf()
   let l:view = winsaveview()
   let b:topic = expand('%:p:h:t')
 

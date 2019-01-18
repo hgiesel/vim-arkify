@@ -1,5 +1,5 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
-function! ankify#mappings#jumpToFile(i)
+function! ankify#mappings#jumpRelative(i)
   let currentFile = expand('%:t')
   " get the number of the end of file name
   let index = string(str2nr(currentFile[strlen(currentFile) - 6]) + a:i)

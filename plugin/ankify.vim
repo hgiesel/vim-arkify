@@ -35,8 +35,8 @@ let g:ankify_mainField  = 'Quest'
 let g:ankify_questField = 'Cloze (overlapping)'
 
 " Plugs
-nmap <silent> <Plug>(AnkifyNextFile) :call AnkifyJumpToFile(1)<cr>
-nmap <silent> <Plug>(AnkifyPrevFile) :call AnkifyJumpToFile(-1)<cr>
+nmap <silent> <Plug>(AnkifyNextFile) :call ankify#mappings#jumpRelative(1)<cr>
+nmap <silent> <Plug>(AnkifyPrevFile) :call ankify#mappings#jumpRelative(-1)<cr>
 
 nmap <silent> <Plug>(AnkifyCopyFullyQualifiedTag) :call AnkifyCopy('t')<cr>
 nmap <silent> <Plug>(AnkifyCopyFtag) :call AnkifyCopy('f')<cr>

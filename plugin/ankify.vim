@@ -1,4 +1,5 @@
-if exists('g:ankify_vim_loaded')
+
+let g:ankify_vim_loaded = v:true
   finish
 endif
 
@@ -25,7 +26,8 @@ function! s:ankify_install_utils()
   endif
 endfunction
 
-command AnkifyInstallUtils call <sid>ankify_install_utils()
+command! AnkifyInstallUtils call <sid>ankify_install_utils()
+command! -nargs=1 Z vimgrep "<args>" $ARCHIVE_ROOT/**/*.adoc
 
 " Global variables
 let g:ankify_deckName   = 'misc::head'
@@ -45,7 +47,7 @@ nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call mappings#copy('q')<cr>
 nmap <silent> <Plug>(AnkifyAnkiQuery) :call mappings#copy('v')<cr>
 nmap <silent> <Plug>(AnkifyAnkiAddCard) :call mappings#copy('a')<cr>
 
-nmap <silent> <Plug>(AnkifyInsertTag) :call AnkifyInsert('t')<cr>
+nmap <silent> <Plug>(AnkifyInsertTag) :call mappings#insertTag('c',2)<cr>
 
 nmap <silent> <localleader>f <Plug>(AnkifyNextFile)
 nmap <silent> <localleader>F <Plug>(AnkifyPrevFile)
@@ -56,14 +58,14 @@ nmap <silent> <localleader>q <Plug>(AnkifyCopyAnkiQuery)
 nmap <silent> <localleader>v <Plug>(AnkifyAnkiQuery)
 nmap <silent> <localleader>a <Plug>(AnkifyAnkiAddCard)
 
-nmap <silent> <localleader>i <Plug>mappings#insertTag
+nmap <silent> <localleader>i <Plug>(AnkifyInsertTag)
 " TODO should be configurable on what tags should look like
 " a: count up
 " b: count up (n characters long)
 " c: random number (n characters long)
 
 " autocmd BufWritePre *.* call AnkifyPrintMeta()
-autocmd BufEnter,BufWrite $ARCHIVE_PATH/*.* call meta#leaf()
-autocmd QuitPre $ARCHIVE_PATH/*/README.* call meta#readme()
+autocmd BufEnter,BufWrite $ARCHIVE_ROOT/* call meta#leaf()
+autocmd QuitPre $ARCHIVE_ROOT/*/README* call meta#readme()
 
 let g:ankify_vim_loaded = v:true

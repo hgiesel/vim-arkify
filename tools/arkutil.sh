@@ -322,7 +322,7 @@ ark() {
     elif [[ -f "${entry}" ]]; then
       $EDITOR "${entry}"
     else
-      if [[ "${entry}" =~ (.*):(.*): ]]; then
+      if [[ "${entry}" =~ ^(.*):(.*):$ ]]; then
         $EDITOR "${BASH_REMATCH[1]}" +${BASH_REMATCH[2]} -c 'normal! zz'
       fi
     fi

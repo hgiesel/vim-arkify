@@ -28,14 +28,11 @@ function! mappings#copy(mode)
     elseif a:mode == 'a'
       let l:view = winsaveview()
       execute 'normal! "ayip'
-      let entry = substitute(substitute(substitute(@a,'\%x00','<br/>',"g"),'"','\"',"g"),'\','\\',"g")
-      echom entry
+      let l:entry = json_encode(substitute(@a,'\%x00','<br/>',"g"))
       call winrestview(l:view)
-      " echom 'curl localhost:8765 -X POST -d ''{ "action": "guiAddCards", "version": 6, "params": {'
-      "       \ '"note": { "deckName": "'.(g:ankify_deckName).'", "modelName": "'.(g:ankify_modelName).'",'
-      "       \ '"fields": { "'.(g:ankify_mainField).'": "'.(l:entry).'"},'
-      "       \ '"options": { "closeAfterAdding": true }, "tags": [ "'.(b:ftag).'" ] } } }'''
-      echo system('curl localhost:8765 -X POST -d ''{"action": "guiAddCards","version":6, "params":{"note":{"deckName": "'.(g:ankify_deckName).'", "modelName":"'.(g:ankify_modelName).'", "fields":{"'.(g:ankify_mainField).'":"'.(entry).'"}, "options": {"closeAfterAdding": true}, "tags": [ "'.(b:ftag).'" ] }}}''')
+
+      echo 'curl localhost:8765 -X POST -d ''{"action": "guiAddCards","version":6, "params":{"note":{"deckName": "'.(g:ankify_deckName).'", "modelName":"'.(g:ankify_modelName).'", "fields":{"'.(g:ankify_mainField).'":'.(l:entry).'}, "options": {"closeAfterAdding": true}, "tags": [ "'.(b:ftag).'" ] }}}'''
+      call system('curl localhost:8765 -X POST -d ''{"action": "guiAddCards","version":6, "params":{"note":{"deckName": "'.(g:ankify_deckName).'", "modelName":"'.(g:ankify_modelName).'", "fields":{"'.(g:ankify_mainField).'":'.(l:entry).'}, "options": {"closeAfterAdding": true}, "tags": [ "'.(b:ftag).'" ] }}}''')
 
     elseif a:mode == 't'
       let @+=(b:ftag).(getline('.'))
@@ -46,13 +43,17 @@ function! mappings#copy(mode)
   endif
 endfunction
 
-function! mappings#insertTag(mode)
+function! mappings#insertTag(mode, length)
   if !empty(b:qtags_unique)
-    execute 'normal! 0Di:'.(b:qtags_unique[-1] + 1).':'
+    let l:nextQtag=b:qtags_unique[-1] + 1
+    let l:commandv1='normal! 0Di:%0'.a:length.'d:'
+    let l:commandv2=printf(l:commandv1,l:nextQtag)
   else
-    execute 'normal! 0Di:1:'
+    let l:commandv1='normal! 0Di:%0'.a:length.'d:'
+    let l:commandv2=printf(l:commandv1,1)
   endif
 
+  execute l:commandv2
   silent write
-  call statistics#printLeaf()
+  call meta#leaf()
 endfunction

@@ -1,4 +1,5 @@
 """""""""""""""""""" Print meta information """""""""""""""""""
+
 function! meta#readme()
   let l:view = winsaveview()
   let b:topic = expand("%:p:h:t")

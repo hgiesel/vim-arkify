@@ -1,4 +1,5 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
+
 function! mappings#jumpRelative(i)
   let currentFile = expand('%:t')
   " get the number of the end of file name
@@ -44,9 +45,9 @@ endfunction
 
 function! mappings#insertTag(mode, length)
   if !empty(b:qtags_unique)
-    let l:nextQtag=b:qtags_unique[-1] + 1
+    let l:next_qtag=b:qtags_unique[-1] + 1
     let l:commandv1='normal! 0Di:%0'.a:length.'d:'
-    let l:commandv2=printf(l:commandv1,l:nextQtag)
+    let l:commandv2=printf(l:commandv1,l:next_qtag)
   else
     let l:commandv1='normal! 0Di:%0'.a:length.'d:'
     let l:commandv2=printf(l:commandv1,1)

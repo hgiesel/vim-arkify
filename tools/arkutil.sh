@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 arkutil_analyze_path() {
-  local uri="$1" debug="$2" quiet=errors
+  local uri="$1" debug="$2"
 
   if [[ "$uri" =~ ^([^#:]*):?:?([^#:]*)#?([^#:]*)$ ]]; then
     local uriComponents
@@ -36,12 +36,12 @@ arkutil_analyze_path() {
     && echo \#\#\# 'pendantTopics' "${pendantTopics[@]}" && echo \#\#\#
 
   if [[ "${#pendantTopics[@]}" -lt 1 ]]; then
-    [[ ! $quiet ]] && echo "arkutil: no such pendant topic exists"
+    [[ ! $quiet ]] && echo "arkutil: no such pendant topic exists" 1>&2
     exit 12
   fi
 
   if [[ "${#pendantTopics[@]}" -gt 1 && ! $multiple ]]; then
-    [[ ! $quiet ]] && echo "arkutil: pendant topic is ambiguous: $(basename -a "${pendantTopics[@]}" | xargs)"
+    [[ ! $quiet ]] && echo "arkutil: pendant topic is ambiguous: $(basename -a "${pendantTopics[@]}" | xargs)" 1>&2
     exit 13
   fi
 
@@ -51,7 +51,7 @@ arkutil_analyze_path() {
 
   if [[ "${uriComponents[1]}" && "$multiple" ]]; then
 
-    [[ ! $quiet ]] && echo "arkutil: cannot use leaf topics without definite pendant topic"
+    [[ ! $quiet ]] && echo "arkutil: cannot use leaf topics without definite pendant topic" 1>&2
     exit 14
 
   elif [[ "${uriComponents[1]}" ]]; then
@@ -87,7 +87,7 @@ arkutil_analyze_path() {
       && echo \#\#\# 'leafTopics' "${leafTopics[@]}" && echo \#\#\#
 
     if [[ "${#leafTopics[@]}" -lt 1 ]]; then
-      [[ ! $quiet ]] && echo "arkutil: no such leaf topic exists"
+      [[ ! $quiet ]] && echo "arkutil: no such leaf topic exists" 1>&2
       exit 15
     fi
 
@@ -97,13 +97,13 @@ arkutil_analyze_path() {
 
         # e.g. `gr-@` would hit `graphs-theory-1` and `groups-1`
         if [[ "${#leafSeries[@]}" -gt 1 ]]; then
-          [[ ! $quiet ]] && echo "arkutil: leaf topic series is ambiguous: ${leafSeries[*]}"
+          [[ ! $quiet ]] && echo "arkutil: leaf topic series is ambiguous: ${leafSeries[*]}" 1>&2
           exit 16
         fi
     fi
 
     if [[ "${#leafTopics[@]}" -gt 1 && ! "$multiple" ]]; then
-      [[ ! $quiet ]] && echo "arkutil: leaf topic is ambiguous: $(basename -a "${leafTopics[@]%.*}" | xargs)"
+      [[ ! $quiet ]] && echo "arkutil: leaf topic is ambiguous: $(basename -a "${leafTopics[@]%.*}" | xargs)" 1>&2
       exit 17
     fi
   fi
@@ -113,13 +113,13 @@ arkutil_analyze_path() {
   #######################################################{{{
 
   if [[ ! "${uriComponents[2]}" =~ ^[@0-9]*$ ]]; then
-    [[ ! $quiet ]] && echo "arkutil: quest identifers must contain of numbers exclusively"
+    [[ ! $quiet ]] && echo "arkutil: quest identifers must contain of numbers exclusively" 1>&2
     exit 18
   fi
 
   if [[ "${uriComponents[2]}" && "$multiple" ]]; then
 
-    [[ ! $quiet ]] && echo "arkutil: cannot use quest identifiers without definite pendant topic"
+    [[ ! $quiet ]] && echo "arkutil: cannot use quest identifiers without definite pendant topic" 1>&2
     exit 19
 
   elif [[ "${uriComponents[2]}" ]]; then
@@ -146,12 +146,12 @@ arkutil_analyze_path() {
       && echo \#\#\# 'questIdentifiers' "${questIdentifiers[@]}" && echo \#\#\#
 
     if [[ "${uriComponents[2]}" && "${#questIdentifiers[@]}" -lt 1 ]]; then
-      [[ ! $quiet ]] && echo "arkutil: no such quest identifier exists in file"
+      [[ ! $quiet ]] && echo "arkutil: no such quest identifier exists in file" 1>&2
       exit 20
     fi
 
     if [[ "${uriComponents[2]}" && "${#questIdentifiers[@]}" -gt 1 && ! "$multiple" ]]; then
-      [[ ! $quiet ]] && echo echo "arkutil: quest is ambiguous: ${questIdentifiers[@]}"
+      [[ ! $quiet ]] && echo "arkutil: quest is ambiguous: ${questIdentifiers[@]}" 1>&2
       exit 21
     fi
 
@@ -167,11 +167,11 @@ arkutil_analyze_path() {
 
   if [[ ! $quiet == 'all' ]]; then
     if [[ ${quests[@]} ]]; then
-      echo "${quests[*]}"
+      (IFS=$'\n'; echo "${quests[*]}")
     elif [[ "${leafTopics[@]}" ]]; then
-      echo "${leafTopics[*]}"
+      (IFS=$'\n'; echo "${leafTopics[*]}")
     else
-      echo "${pendantTopics[*]}"
+      (IFS=$'\n'; echo "${pendantTopics[*]}")
     fi
   fi
 
@@ -313,27 +313,23 @@ ark() {
     cd $ARCHIVE_ROOT
   else
     local entry
-    entry=$(quiet=errors arkutil paths "$1")
+    arr="$(quiet=errors arkutil paths "$1")"
     exitstatus=$?
     [[ ! $exitstatus == '0' ]] && return $exitstatus
+    read -a entry <<< "${arr[@]}"
 
-    if [[ -d "${entry}" ]]; then
+    if [[ -d ${entry} ]]; then
       cd "$entry"
-    elif [[ -f "${entry}" ]]; then
+
+    elif [[ -f ${entry} ]]; then
       $EDITOR "${entry}"
-    else
-      if [[ "${entry}" =~ ^(.*):(.*):$ ]]; then
-        $EDITOR "${BASH_REMATCH[1]}" +${BASH_REMATCH[2]} -c 'normal! zz'
-      fi
+
+    elif [[ ${entry} =~ ^(.*):(.*): ]]; then
+      $EDITOR "${BASH_REMATCH[1]}" +${BASH_REMATCH[2]} -c 'normal! zz'
     fi
   fi
 }
 EOF
 else
-  declare TOPIC_EXP=
-  declare SUBTOPIC_EXP=
-  declare QUEST_EXP=
-  declare MULTIPLE=
   arkutil_analyze_path $ARG
-  echo $TOPIC_EXP $SUBTOPIC_EXP $QUEST_EXP $MULTIPLE
 fi

@@ -3,7 +3,10 @@
 arkutil_analyze_path() {
   local uri="$1" debug="$2"
 
-  if [[ "$uri" =~ ^([^#:]*):?:?([^#:]*)#?([^#:]*)$ ]]; then
+  if [[ ! "$uri" ]]; then
+    [[ ! $quiet == 'all' ]] && echo "$ARCHIVE_ROOT"
+    exit 0
+  elif [[ "$uri" =~ ^([^#:]*):?:?([^#:]*)#?([^#:]*)$ ]]; then
     local uriComponents
     read -a uriComponents <<< "${BASH_REMATCH[@]:1}"
   fi
@@ -26,7 +29,7 @@ arkutil_analyze_path() {
   elif [[ "${uriComponents[0]}" ]]; then
     pendantTopicRegex="/${uriComponents[0]//-/[^./]*-}[^./]*$"
     read -a pendantTopics <<< "$(IFS=$'\n'; echo "${pendantTopicsAvailable[*]}"\
-      | grep "$pendantTopicRegex" | xargs)"
+      | grep "$pendantTopicRegex" | paste -sd' ')"
   fi
 
   ##### validity checks and error reporting #####
@@ -41,7 +44,7 @@ arkutil_analyze_path() {
   fi
 
   if [[ "${#pendantTopics[@]}" -gt 1 && ! $multiple ]]; then
-    [[ ! $quiet ]] && echo "arkutil: pendant topic is ambiguous: $(basename -a "${pendantTopics[@]}" | xargs)" 1>&2
+    [[ ! $quiet ]] && echo "arkutil: pendant topic is ambiguous: $(basename -a "${pendantTopics[@]}" | paste -sd' ')" 1>&2
     exit 13
   fi
 
@@ -72,7 +75,7 @@ arkutil_analyze_path() {
       local leafTopicRegex="/${shortenedComponent//-/[^./]*-}[^./]*\..*$"
 
       read -a leafTopics <<< "$(IFS=$'\n'; echo "${leafTopicsAvailable[*]}"\
-        | grep "$leafTopicRegex" | xargs)"
+        | grep "$leafTopicRegex" | paste -sd' ')"
 
     else
       local leafTopicRegex="/${uriComponents[1]//-/[^./]*-}[^./]*\..*$"
@@ -93,7 +96,7 @@ arkutil_analyze_path() {
 
     if [[ "${#leafTopics[@]}" -gt 1 && "$multiple" == 'series' ]]; then
       local leafSeries
-      read -a leafSeries <<< $(basename -a "${leafTopics[@]%-*}" | sort -u | xargs)
+      read -a leafSeries <<< $(basename -a "${leafTopics[@]%-*}" | sort -u | paste -sd' ')
 
         # e.g. `gr-@` would hit `graphs-theory-1` and `groups-1`
         if [[ "${#leafSeries[@]}" -gt 1 ]]; then
@@ -103,7 +106,7 @@ arkutil_analyze_path() {
     fi
 
     if [[ "${#leafTopics[@]}" -gt 1 && ! "$multiple" ]]; then
-      [[ ! $quiet ]] && echo "arkutil: leaf topic is ambiguous: $(basename -a "${leafTopics[@]%.*}" | xargs)" 1>&2
+      [[ ! $quiet ]] && echo "arkutil: leaf topic is ambiguous: $(basename -a "${leafTopics[@]%.*}" | paste -sd' ')" 1>&2
       exit 17
     fi
   fi
@@ -126,7 +129,7 @@ arkutil_analyze_path() {
 
     local questIdentifiersAvailable
     read -a questIdentifiersAvailable <<<\
-      "$(command grep -n '^:[[:digit:]]\+[[:alpha:]]*:$' "${leafTopics}" | xargs)"
+      "$(command grep -n '^:[[:digit:]]\+[[:alpha:]]*:$' "${leafTopics}" | paste -sd' ')"
 
     local questIdentifiers
     if [[ ${uriComponents[2]} == '@' ]]; then
@@ -135,7 +138,7 @@ arkutil_analyze_path() {
 
     else
       read -a questIdentifiers <<< "$(IFS=$'\n'; echo "${questIdentifiersAvailable[*]}"\
-        | grep "[0-9]\+:[^0-9]*${uriComponents[2]}[^0-9]*" | xargs)"
+        | grep "[0-9]\+:[^0-9]*${uriComponents[2]}[^0-9]*" | paste -sd' ')"
     fi
 
     ##### validity checks and error reporting #####
@@ -178,7 +181,35 @@ arkutil_analyze_path() {
   exit 0
 }
 
-# execute_command() {
+arkutil_execute_command() {
+  local mode="$1" files recursive="$3"
+  read -a files <<< "$(echo "$2" | paste -sd' ')"
+
+  if [[ $1 == 'stats' ]]; then
+    for f in "${files[@]}"; do
+
+      if [[ "$f" == "$ARCHIVE_ROOT" ]]; then
+        echo -n $(basename $f) $'\t'
+        arkutil_execute_command 'stats' "$(quiet=errors arkutil_analyze_path "@")" "true" | tee\
+          >(cut -f3 | paste -sd'+' | { read y; echo "$((y))"; })\
+          >(cut -f2 | paste -sd'+' | { read x; echo -n "$((x))" $'\t'; })\
+          > /dev/null
+
+      elif [[ -d "$f" ]]; then
+        echo -n $(basename $f) $'\t'
+        arkutil_execute_command 'stats' "$(quiet=errors arkutil_analyze_path "$(basename $f):@")" "true" | tee\
+          >(cut -f3 | paste -sd'+' | { read y; echo "$((y))"; })\
+          >(cut -f2 | paste -sd'+' | { read x; echo -n "$((x))" $'\t'; })\
+          > /dev/null
+
+      elif [[ -f "$f" ]]; then
+        echo -n "$(basename ${f%.*})" $'\t'
+        grep -oP '(?<=:stats: ).*' "$f" | tr ',' $'\t'
+      fi
+
+    done
+  fi
+}
 #   ######################### COMMANDS WITH TOPIC ARGUMENT
 #   if [[ ! $TOPIC_EXP && ! $MULTIPLE ]]; then
 #     case $MODE in
@@ -304,32 +335,34 @@ case "$1" in
   *) echo 'Illegal command!';  exit 3 ;;
 esac
 
-[[ $2 ]] && declare ARG=${2:-''}
+[[ $2 ]] && declare uri=${2:-''}
 
 if [[ "$arkMode" == 'ark' ]]; then
   cat <<-'EOF'
 ark() {
-  if [[ -z "$1" ]]; then
-    cd $ARCHIVE_ROOT
-  else
-    local entry
-    arr="$(quiet=errors arkutil paths "$1")"
-    exitstatus=$?
-    [[ ! $exitstatus == '0' ]] && return $exitstatus
-    read -a entry <<< "${arr[@]}"
+  local entry
+  arr="$(quiet=errors arkutil paths "$1")"
+  exitstatus=$?
+  [[ ! $exitstatus == '0' ]] && return $exitstatus
+  read -a entry <<< "${arr[@]}"
 
-    if [[ -d ${entry} ]]; then
-      cd "$entry"
+  if [[ -d ${entry} ]]; then
+    cd "$entry"
 
-    elif [[ -f ${entry} ]]; then
-      $EDITOR "${entry}"
+  elif [[ -f ${entry} ]]; then
+    $EDITOR "${entry}"
 
-    elif [[ ${entry} =~ ^(.*):(.*): ]]; then
-      $EDITOR "${BASH_REMATCH[1]}" +${BASH_REMATCH[2]} -c 'normal! zz'
-    fi
+  elif [[ ${entry} =~ ^(.*):(.*): ]]; then
+    $EDITOR "${BASH_REMATCH[1]}" +${BASH_REMATCH[2]} -c 'normal! zz'
   fi
 }
 EOF
+elif [[ "$arkMode" == 'paths' ]]; then
+  arkutil_analyze_path "$uri"
 else
-  arkutil_analyze_path $ARG
+  arkutil_execute_command "$arkMode" "$(quiet=errors arkutil_analyze_path "$uri")"
+
 fi
+
+
+

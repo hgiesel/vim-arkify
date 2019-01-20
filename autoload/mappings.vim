@@ -31,7 +31,6 @@ function! mappings#copy(mode)
       let l:entry = json_encode(substitute(@a,'\%x00','<br/>',"g"))
       call winrestview(l:view)
 
-      echo 'curl localhost:8765 -X POST -d ''{"action": "guiAddCards","version":6, "params":{"note":{"deckName": "'.(g:ankify_deckName).'", "modelName":"'.(g:ankify_modelName).'", "fields":{"'.(g:ankify_mainField).'":'.(l:entry).'}, "options": {"closeAfterAdding": true}, "tags": [ "'.(b:ftag).'" ] }}}'''
       call system('curl localhost:8765 -X POST -d ''{"action": "guiAddCards","version":6, "params":{"note":{"deckName": "'.(g:ankify_deckName).'", "modelName":"'.(g:ankify_modelName).'", "fields":{"'.(g:ankify_mainField).'":'.(l:entry).'}, "options": {"closeAfterAdding": true}, "tags": [ "'.(b:ftag).'" ] }}}''')
 
     elseif a:mode == 't'

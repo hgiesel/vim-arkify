@@ -1,5 +1,4 @@
-
-let g:ankify_vim_loaded = v:true
+if exists('g:ankify_vim_loaded')
   finish
 endif
 

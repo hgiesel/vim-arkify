@@ -83,7 +83,6 @@ class ArkUri:
             if self.ancestor_component:
                 match = ancestor_regex.search(root)
                 if match and any([readme_regex.search(file) for file in files]):
-                    if match:
                     topics.append({
                         'dir':   root,
                         'files': [file for file in files if not readme_regex.search(file)],
@@ -92,10 +91,10 @@ class ArkUri:
 
             else:
                 if any([readme_regex.search(file) for file in files]):
-                        topics.append({
-                            'dir':   root,
-                            'files': [file for file in files if not readme_regex.search(file)],
-                            'lines': []})
+                    topics.append({
+                        'dir':   root,
+                        'files': [file for file in files if not readme_regex.search(file)],
+                        'lines': []})
 
 
         if self.ancestor_component:
@@ -268,14 +267,14 @@ class ArkUri:
 
                 all_stats = self.stats( ([d],Mode.LEAFS,'') )
                 result.append((os.path.basename(d['dir']),
-                    sum(map(lambda l: l[1], all_stats)),
-                    sum(map(lambda l: l[2], all_stats))))
+                               sum(map(lambda l: l[1], all_stats)),
+                               sum(map(lambda l: l[2], all_stats))))
 
         elif mode in [Mode.ARCHIVE]:
-            all_stats = self.stats( (topics,Mode.PENDANTS) )
+            all_stats = self.stats( (topics,Mode.PENDANTS,'') )
             result.append((os.path.basename(summaryName),
-                    sum(map(lambda l: l[1], all_stats)),
-                    sum(map(lambda l: l[2], all_stats))))
+                           sum(map(lambda l: l[1], all_stats)),
+                           sum(map(lambda l: l[2], all_stats))))
 
         else:
             theparser.error('should-never-happen error')
@@ -284,7 +283,10 @@ class ArkUri:
 
     @staticmethod
     def ark():
-        print('''
+        '''
+        returns nothing
+        '''
+        print(r'''
 ark() {
   local entry
   arr="$(quiet=errors arkutil paths "$1")"
@@ -302,6 +304,9 @@ ark() {
     $EDITOR "${BASH_REMATCH[1]}" +${BASH_REMATCH[2]} -c 'normal! zz'
   fi
 }
+
+alias hasq="awk '{ if(\$3 != 0) { print \$0 } }'"
+
 ''')
 
     @staticmethod

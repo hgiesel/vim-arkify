@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 import re
-import sys
-import pathlib
-import argparse
-
-import os
 import enum
+import argparse
+import os
 
 class Mode(enum.Enum):
     ''' (self) -> ([ResultDict], summary: bool)
     * Analzyes uri and returns one of the following:
-    ** ''                             -> (multiple dirs                 ,ARCHIVE)
-    ** unimplemented:  'abstract-algebra<'  -> (multiple dirs           ,(OVERVIEW))
+
     ** '@'                            -> (multiple dirs                 ,PENDANTS)
-    ** unimplemented:  'abstract-algebra<@' -> (multiple dirs           ,(SELECTION))
+    ** 'abstract-algebra<@'           -> (multiple dirs                ,(SELECTION))
+    ** ''                             -> (multiple dirs                 ,ARCHIVE)
+    ** 'abstract-algebra<'            -> (multiple dirs                ,(OVERVIEW))
     ** 'group-theory'                 -> (single dir+multiple files     ,TOPIC)
+
     ** 'group-theory:@'               -> (single dir+multiple files     ,LEAFS)
     ** 'group-theory:group-like-@'    -> (single dir+multiple files     ,SERIES)
     ** 'group-theory:group-like-2'    -> (single dir,file               ,INDIVIDUAL)
+
     ** 'group-theory:group-like-2#@'  -> (single dir,file+multiple lines,QUEST_M)
     ** 'group-theory:group-like-2#5'  -> (single dir,file,lines         ,QUEST)
     '''
@@ -36,42 +36,79 @@ class ArkUri:
     def __init__(self, uri):
 
         matches = re.search(
-            r'^([^#/:]*)(?:::|:)?([^#/:]*)#?(@|\d*)$', uri)
+            r'^(?:([^#/:]*)//)?([^#/:]*)(?::?:([^#/:]*))?(?:#(@|\d*))?$', uri)
 
         if matches is not None:
-            self.pendant_component = matches.group(1) or ''
-            self.leaf_component    = matches.group(2) or ''
-            self.quest_component   = matches.group(3) or ''
+            self.ancestor_component = matches.group(1) or ''
+            self.pendant_component  = matches.group(2) or ''
+            self.leaf_component     = matches.group(3) or ''
+            self.quest_component    = matches.group(4) or ''
         else:
             theparser.error('invalid archive uri')
 
     def __analyze(self):
 
-        ''' (self) -> ([ResultDict], summary: bool)
+        ''' (self) -> ([ResultDict], mode: Mode, summaryName: String)
         * Analzyes uri and returns one of the following:
-        ** ''                             -> (multiple dirs                 ,INDIVIDUAL)
-        ** unimplemented:  'abstract-algebra<'  -> (multiple dirs           ,INDIVIDUAL)
+
         ** '@'                            -> (multiple dirs                 ,PENDANTS)
-        ** unimplemented:  'abstract-algebra<@' -> (multiple dirs           ,SELECTION)
-        ** 'group-theory'                 -> (single dir+multiple files     ,INDIVIDUAL)
+        ** 'abstract-algebra<@'           -> (multiple dirs                ,~PENDANTS)
+        ** ''                             -> (multiple dirs                 ,SELECTION)
+        ** 'abstract-algebra<'            -> (multiple dirs                ,~SELECTION)
+        ** 'group-theory'                 -> (single dir+multiple files     ,TOPIC)
+
         ** 'group-theory:@'               -> (single dir+multiple files     ,LEAFS)
         ** 'group-theory:group-like-@'    -> (single dir+multiple files     ,SERIES)
         ** 'group-theory:group-like-2'    -> (single dir,file               ,INDIVIDUAL)
-        ** 'group-theory:group-like-2#5'  -> (single dir,file,lines         ,INDIVIDUAL)
-        ** 'group-theory:group-like-2#@'  -> (single dir,file+multiple lines,QUESTS)
+
+        ** 'group-theory:group-like-2#@'  -> (single dir,file+multiple lines,QUEST_M)
+        ** 'group-theory:group-like-2#5'  -> (single dir,file,lines         ,QUEST)
         '''
 
         mode        = Mode.ARCHIVE
+        summaryName = os.environ['ARCHIVE_ROOT']
         topics      = []
 
-        readme_regex = re.compile('^README\..*')
-        for root, dirs, files in os.walk(os.environ['ARCHIVE_ROOT']):
+        '''
+        processing of ancestor topic
+        '''
+        if self.ancestor_component:
+            matched_ancestors = []
+            ancestor_regex = re.compile('/(' + self.ancestor_component.replace('-','[^./]*-') + '[^./]*)/')
 
-            if any([readme_regex.search(file) for file in files]):
-                topics.append({
-                    'dir': root,
-                    'files': [file for file in files if not readme_regex.search(file)],
-                    'lines': []})
+        readme_regex = re.compile('^README\..*')
+        for root, dirs, files in os.walk(summaryName):
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+
+            if self.ancestor_component:
+                match = ancestor_regex.search(root)
+                if match and any([readme_regex.search(file) for file in files]):
+                    if match:
+                    topics.append({
+                        'dir':   root,
+                        'files': [file for file in files if not readme_regex.search(file)],
+                        'lines': []})
+                    matched_ancestors.append(match.group(1))
+
+            else:
+                if any([readme_regex.search(file) for file in files]):
+                        topics.append({
+                            'dir':   root,
+                            'files': [file for file in files if not readme_regex.search(file)],
+                            'lines': []})
+
+
+        if self.ancestor_component:
+            unique_ancestors = set(matched_ancestors)
+
+            if len(unique_ancestors) < 1:
+                theparser.error('no such ancestor topic exists')
+
+            if len(unique_ancestors) > 1:
+                theparser.error('ancestor topic is ambiguous: ' + ' '.join(unique_ancestors))
+
+            summaryName = unique_ancestors.pop()
+
 
         '''
         processing of pendant topic
@@ -173,13 +210,13 @@ class ArkUri:
 
         if ARGV.debug:
             print('### mode:\t' + mode.name)
-        return (topics, mode)
+        return (topics, mode, summaryName)
 
     def paths(self):
         '''
         returns list of dirs, files, or files with linenos
         '''
-        topics, mode = self.__analyze()
+        topics, mode, summaryName = self.__analyze()
         result = []
 
         if mode in [Mode.QUEST, Mode.QUEST_M]:
@@ -195,7 +232,7 @@ class ArkUri:
                 result.append(d['dir'])
 
         elif mode in [Mode.ARCHIVE]:
-            result.append(os.environ['ARCHIVE_ROOT'])
+            result.append(summaryName)
 
         else:
             theparser.error('should-never-happen error')
@@ -206,7 +243,7 @@ class ArkUri:
         '''
         returns list of (identifer, count of content lines, count of qtags)
         '''
-        topics, mode = preanalyzed if preanalyzed is not None else self.__analyze()
+        topics, mode, summaryName = preanalyzed if preanalyzed is not None else self.__analyze()
         result = []
 
         # no special stats for quest tags atm
@@ -229,14 +266,14 @@ class ArkUri:
         elif mode in [Mode.TOPIC, Mode.PENDANTS]:
             for d in topics:
 
-                all_stats = self.stats( ([d],Mode.LEAFS) )
+                all_stats = self.stats( ([d],Mode.LEAFS,'') )
                 result.append((os.path.basename(d['dir']),
                     sum(map(lambda l: l[1], all_stats)),
                     sum(map(lambda l: l[2], all_stats))))
 
         elif mode in [Mode.ARCHIVE]:
             all_stats = self.stats( (topics,Mode.PENDANTS) )
-            result.append((os.path.basename(os.environ['ARCHIVE_ROOT']),
+            result.append((os.path.basename(summaryName),
                     sum(map(lambda l: l[1], all_stats)),
                     sum(map(lambda l: l[2], all_stats))))
 

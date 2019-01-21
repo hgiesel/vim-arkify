@@ -1,5 +1,16 @@
-"""""""""""""""""""" Print meta information """""""""""""""""""
+"""""""""""""""""""" Pecho
+let Pecho=''
+function! Pecho(msg)
+  let s:hold_ut=&ut | if &ut>1|let &ut=1|en
+  let Pecho=a:msg
+  aug Pecho
+    au CursorHold * if Pecho!=''| echohl ErrorMsg | echo Pecho | echohl None
+          \|let s:Pecho=''|if s:hold_ut > &ut |let &ut=s:hold_ut|en|en
+        \|aug Pecho|exe 'au!'|aug END|aug! Pecho
+  aug END
+endfunction
 
+"""""""""""""""""""" Print meta information """""""""""""""""""
 function! meta#readme()
   let l:view = winsaveview()
   let b:topic = expand("%:p:h:t")
@@ -16,26 +27,6 @@ function! meta#readme()
 
   call cursor([2,1])
   silent execute 'normal! S:tag: '.b:topic
-
-  """ write number of content lines, questions as :stats:
-  call cursor([3,1])
-
-  if b:topic == system('basename $(ARCHIVE_PATH)')
-    let b:accum_content_lines = system('command grep -rPho ''(?<=\:stats\: ).*'' $(find $ARCHIVE_PATH -type f -mindepth 2 -name ''README.*'') | tail -n +2 | cut -d, -f1 | paste -sd ''+'' - | bc | tr -d ''\r\n''')
-    let b:accum_qtags = system('command grep -rPho ''(?<=\:stats\: ).*'''
-          \ '$(find $ARCHIVE_PATH -type f -mindepth 2 -name ''README.*'') |'
-          \ 'tail -n +2 | cut -d, -f2 | paste -sd ''+'' - | bc | tr -d ''\r\n''')
-  else
-    let b:accum_content_lines = system('command grep --exclude README.* -rPho ''(?<=:stats: ).*'' | cut -d, -f1 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
-    let b:accum_qtags = system('command grep --exclude README.* -rPho ''(?<=:stats: ).*'' | cut -d, -f2 |  paste -sd ''+'' - | bc | tr -d ''\r\n''')
-  endif
-
-  if b:accum_content_lines == ''
-    silent execute 'normal! S:stats: 0,0'
-  else
-    silent execute 'normal! S:stats: '.b:accum_content_lines.','.b:accum_qtags
-  endif
-
 
   """ save
   silent write

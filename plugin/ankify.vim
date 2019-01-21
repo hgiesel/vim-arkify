@@ -1,18 +1,6 @@
 if exists('g:ankify_vim_loaded')
   finish
 endif
-
-let Pecho=''
-function! Pecho(msg)
-  let s:hold_ut=&ut | if &ut>1|let &ut=1|en
-  let Pecho=a:msg
-  aug Pecho
-    au CursorHold * if Pecho!=''| echohl ErrorMsg | echo Pecho | echohl None
-          \|let s:Pecho=''|if s:hold_ut > &ut |let &ut=s:hold_ut|en|en
-        \|aug Pecho|exe 'au!'|aug END|aug! Pecho
-  aug END
-endfunction
-
 let s:plugindir = expand('<sfile>:p:h:h')
 
 function! s:ankify_install_utils()

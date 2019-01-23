@@ -36,18 +36,21 @@ alias nomatch="awk '{ if(\$2 != \$3 ) { print \$0 } }'"
 
 class Mode(enum.Enum):
     ''' modes for ArkUri.__analyze '''
-    ARCHIVE    = enum.auto()
-    TOPIC      = enum.auto()
-    PENDANTS   = enum.auto()
-    PENDANTS_A = enum.auto()
-    PENDANTS_B = enum.auto()
-    INDIVIDUAL = enum.auto()
-    SERIES     = enum.auto()
-    SERIES_A   = enum.auto()
-    LEAFS      = enum.auto()
-    LEAFS_A    = enum.auto()
-    QUEST      = enum.auto()
-    QUEST_M    = enum.auto()
+    GROUP    = enum.auto() # -> GROUP
+
+    SECTION_I      = enum.auto() # -> SECTION_I
+    SECTION_A   = enum.auto() # -> SECTION_A
+
+    PAGE_I = enum.auto() # -> PAGE_I
+    PAGE_S     = enum.auto() # -> PAGE_S
+    PAGE_A      = enum.auto() # -> PAGE_A
+    PAGE_B = enum.auto() # -> PAGE_B
+
+    QUEST_I    = enum.auto() # -> QUEST_I
+    QUEST_SA   = enum.auto() # -> QUEST_SA
+    QUEST_A    = enum.auto() # -> QUEST_A
+    QUEST_B    = enum.auto() # -> QUEST_B
+    QUEST_C = enum.auto() # -> QUEST_C
 
 class ArkPrinter():
     @staticmethod
@@ -74,20 +77,20 @@ class ArkUri:
         ** 'abstract-algebra<@'           -> (multiple dirs                ,~doesn't affect mode)
         ** 'abstract-algebra<'            -> (multiple dirs                ,~doesn't affect mode)
 
-        ** ''                             -> (multiple dirs                 ,ARCHIVE)
-        ** 'group-theory'                 -> (single dir+multiple files     ,TOPIC)
+        ** ''                             -> (multiple dirs                 ,GROUP)
+        ** 'group-theory'                 -> (single dir+multiple files     ,SECTION_I)
 
-        ** 'group-theory:@'               -> (single dir+multiple files     ,LEAFS)
-        ** 'group-theory:group-like-@'    -> (single dir+multiple files     ,SERIES)
-        ** 'group-theory:group-like-2'    -> (single dir,file               ,INDIVIDUAL)
+        ** 'group-theory:@'               -> (single dir+multiple files     ,PAGE_A)
+        ** 'group-theory:group-like-@'    -> (single dir+multiple files     ,PAGE_S)
+        ** 'group-theory:group-like-2'    -> (single dir,file               ,PAGE_I)
 
-        ** 'group-theory:group-like-2#@'  -> (single dir,file+multiple lines,QUEST_M)
-        ** 'group-theory:group-like-2#5'  -> (single dir,file,lines         ,QUEST)
+        ** 'group-theory:group-like-2#@'  -> (single dir,file+multiple lines,QUEST_A)
+        ** 'group-theory:group-like-2#5'  -> (single dir,file,lines         ,QUES_IT)
 
-        ** '@:@'               -> (single dir+multiple files ,LEAFS_A)
-        ** '@'                -> (multiple dirs              ,PENDANTS)
-        ** '@:@'    -> (multiple dirs,files,lines  ,PENDANTS_A)
-        ** '@:@#@'  -> (multiple dirs,files,lines  ,PENDANTS_B)
+        ** '@:@'               -> (single dir+multiple files ,QUEST_B)
+        ** '@'                -> (multiple dirs              ,SECTION_A)
+        ** '@:@'    -> (multiple dirs,files,lines  ,PAGE_B)
+        ** '@:@#@'  -> (multiple dirs,files,lines  ,QUEST_C)
         '''
 
         component_regex = (# optional ancestor component
@@ -119,39 +122,39 @@ class ArkUri:
             self.leaf_component     = matches.group(3) or ''
             self.quest_component    = matches.group(4) or ''
 
-            tempMode = Mode.ARCHIVE
+            tempMode = Mode.GROUP
 
             if self.pendant_component == '@':
-                tempMode = Mode.PENDANTS
+                tempMode = Mode.SECTION_A
 
             elif self.pendant_component:
-                tempMode = Mode.TOPIC
+                tempMode = Mode.SECTION_I
 
-            if tempMode == Mode.PENDANTS and self.leaf_component == '@':
-                tempMode = Mode.PENDANTS_A
+            if tempMode == Mode.SECTION_A and self.leaf_component == '@':
+                tempMode = Mode.PAGE_B
 
-            elif tempMode == Mode.PENDANTS and self.leaf_component:
+            elif tempMode == Mode.SECTION_A and self.leaf_component:
                 theparser.error('query malformed: cannot use leaf topics without definite pendant topic or @')
 
-            if tempMode == Mode.TOPIC and self.leaf_component == '@':
-                tempMode = Mode.LEAFS
-            elif tempMode == Mode.TOPIC and self.leaf_component.endswith('-@') and len(self.leaf_component) >= 3:
-                tempMode = Mode.SERIES
-            elif tempMode == Mode.TOPIC and self.leaf_component:
-                tempMode = Mode.INDIVIDUAL
+            if tempMode == Mode.SECTION_I and self.leaf_component == '@':
+                tempMode = Mode.PAGE_A
+            elif tempMode == Mode.SECTION_I and self.leaf_component.endswith('-@') and len(self.leaf_component) >= 3:
+                tempMode = Mode.PAGE_S
+            elif tempMode == Mode.SECTION_I and self.leaf_component:
+                tempMode = Mode.PAGE_I
 
             if self.quest_component == '@':
-                if tempMode == Mode.PENDANTS_A:
-                    tempMode = Mode.PENDANTS_B
-                elif tempMode == Mode.LEAFS:
-                    tempMode = Mode.LEAFS_A
-                elif tempMode == Mode.SERIES:
-                    tempMode = Mode.SERIES_A
-                elif tempMode == Mode.INDIVIDUAL:
-                    tempMode = Mode.QUEST_M
+                if tempMode == Mode.PAGE_B:
+                    tempMode = Mode.QUEST_C
+                elif tempMode == Mode.PAGE_A:
+                    tempMode = Mode.QUEST_B
+                elif tempMode == Mode.PAGE_S:
+                    tempMode = Mode.QUEST_SA
+                elif tempMode == Mode.PAGE_I:
+                    tempMode = Mode.QUEST_A
 
-            elif self.quest_component and tempMode == Mode.INDIVIDUAL:
-                tempMode = Mode.QUEST
+            elif self.quest_component and tempMode == Mode.PAGE_I:
+                tempMode = Mode.QUEST_I
 
             elif self.quest_component:
                 theparser.error('query malformed: cannot use quest identifers without definite leaf topic or @')
@@ -231,7 +234,7 @@ class ArkUri:
         first_dir = topics[0]
 
 
-        if self.mode == Mode.SERIES or self.mode == Mode.SERIES_A:
+        if self.mode == Mode.PAGE_S or self.mode == Mode.QUEST_SA:
             leaf_regex = '^' + self.leaf_component[:-2].replace('-', '[^./]*-') + '[^./]*\..*$'
             first_dir['files'] = list(filter(
                 lambda f: re.search(leaf_regex, f['fileName']), first_dir['files']))
@@ -245,15 +248,16 @@ class ArkUri:
             theparser.error('no such leaf topic exists')
 
         # e.g. `gr-@` would hit `graphs-theory-1` and `groups-1`
-        if self.mode == Mode.SERIES and len(first_dir['files']) > 1:
+        if self.leaf_component.endswith('-@') and len(first_dir['files']) > 1:
             leaf_series = set(map(lambda f: re.search('(.*)-.*', f['fileName']).group(1), first_dir['files']))
             if len(leaf_series) > 1:
                 theparser.error('leaf topic series is ambiguous: '
                     + ' '.join(list(map(lambda s: os.path.basename(s), leaf_series))))
 
-        if self.mode == Mode.INDIVIDUAL and len(first_dir['files']) > 1:
+        elif self.pendant_component and not self.pendant_component == '@' and len(first_dir['files']) > 1:
             theparser.error('leaf topic is ambiguous: '
-                + ' '.join(list(map(lambda f: os.path.basename(f['fileName']), first_dir['files']))))
+                + ' '.join(list(map(lambda f:
+                    os.path.splitext(os.path.basename(f['fileName']))[0], first_dir['files']) )))
 
         '''
         processing of quest identifier
@@ -272,7 +276,7 @@ class ArkUri:
                                     'quest': quest_identifier.group(1)})
 
 
-        if self.mode == Mode.QUEST:
+        if self.mode == Mode.QUEST_I:
             first_dir  = topics[0]
             first_file = topics[0]['files'][0]
 
@@ -302,22 +306,22 @@ class ArkUri:
         topics, summary_name = self.__analyze()
         result = []
 
-        if self.mode in [Mode.PENDANTS_B, Mode.LEAFS_A, Mode.SERIES_A, Mode.QUEST_M, Mode.QUEST]:
+        if self.mode in [Mode.QUEST_C, Mode.QUEST_B, Mode.QUEST_SA, Mode.QUEST_A, Mode.QUEST_I]:
             for d in topics:
                 for f in d['files']:
                     for l in f['lines']:
                         result.append( (d['dirName'] + '/' + f['fileName'], l['lineno']) )
 
-        elif self.mode in [Mode.PENDANTS_A, Mode.LEAFS, Mode.SERIES, Mode.INDIVIDUAL]:
+        elif self.mode in [Mode.PAGE_B, Mode.PAGE_A, Mode.PAGE_S, Mode.PAGE_I]:
             for d in topics:
                 for f in d['files']:
                     result.append( (topics[0]['dirName']+'/'+f['fileName'], None) )
 
-        elif self.mode in [Mode.PENDANTS, Mode.TOPIC]:
+        elif self.mode in [Mode.SECTION_A, Mode.SECTION_I]:
             for d in topics:
                 result.append( (d['dirName'],None) )
 
-        elif self.mode in [Mode.ARCHIVE]:
+        elif self.mode in [Mode.GROUP]:
             result.append( (summary_name,None) )
 
         else:
@@ -334,7 +338,7 @@ class ArkUri:
 
         result = []
 
-        if mode in [Mode.QUEST, Mode.QUEST_M, Mode.SERIES_A, Mode.LEAFS_A, Mode.PENDANTS_B]:
+        if mode in [Mode.QUEST_I, Mode.QUEST_A, Mode.QUEST_SA, Mode.QUEST_B, Mode.QUEST_C]:
             for d in topics:
                 for f in d['files']:
                     for l in f['lines']:
@@ -349,7 +353,7 @@ class ArkUri:
                             l['quest'],
                             l['lineno']) )
 
-        elif mode in [Mode.INDIVIDUAL, Mode.SERIES, Mode.LEAFS, Mode.PENDANTS_A]:
+        elif mode in [Mode.PAGE_I, Mode.PAGE_S, Mode.PAGE_A, Mode.PAGE_B]:
 
             for d in topics:
                 for f in d['files']:
@@ -369,17 +373,17 @@ class ArkUri:
                                     stats_identifier.group(1),  # questions
                                     stats_identifier.group(2))) # content lines
 
-        elif mode in [Mode.TOPIC, Mode.PENDANTS]:
+        elif mode in [Mode.SECTION_I, Mode.SECTION_A]:
 
             for d in topics:
-                all_stats = self.stats( ([d],''), Mode.LEAFS )
+                all_stats = self.stats( ([d],''), Mode.PAGE_A )
                 result.append((os.path.basename(d['dirName']),
                     str(sum(map(lambda l: int(l[1]), all_stats))),
                     str(sum(map(lambda l: int(l[2]), all_stats)))))
 
-        elif mode in [Mode.ARCHIVE]:
+        elif mode in [Mode.GROUP]:
 
-            all_stats = self.stats( (topics,''), Mode.LEAFS )
+            all_stats = self.stats( (topics,''), Mode.PAGE_A )
             result.append((os.path.basename(summary_name),
                 str(sum(map(lambda l: int(l[1]), all_stats))),
                 str(sum(map(lambda l: int(l[2]), all_stats)))))
@@ -413,11 +417,11 @@ class ArkUri:
         stats = self.stats()
         result = []
 
-        if self.mode in [Mode.QUEST, Mode.QUEST_M, Mode.SERIES_A, Mode.LEAFS_A, Mode.PENDANTS_B]:
+        if self.mode in [Mode.QUEST_I, Mode.QUEST_SA, Mode.QUEST_A, Mode.QUEST_B, Mode.QUEST_C]:
 
             queries = []
             for entry in stats:
-                if self.mode == Mode.PENDANTS_B:
+                if self.mode == Mode.QUEST_C:
                     constructed_quest = entry[1]
                     constructed_pendant, constructed_leaf = entry[0].split(':')
                 else:
@@ -434,11 +438,11 @@ class ArkUri:
                 result.append( (t[0][0], t[0][1], t[1]) )
             pass
 
-        elif self.mode in [Mode.INDIVIDUAL, Mode.SERIES, Mode.LEAFS, Mode.PENDANTS_A]:
+        elif self.mode in [Mode.PAGE_I, Mode.PAGE_S, Mode.PAGE_A, Mode.PAGE_B]:
 
             queries = []
             for entry in stats:
-                if self.mode == Mode.PENDANTS_A:
+                if self.mode == Mode.PAGE_B:
                     constructed_pendant, constructed_leaf = entry[0].split(':')
                 else:
                     constructed_pendant, constructed_leaf = self.pendant_component, entry[0]
@@ -451,7 +455,7 @@ class ArkUri:
             for t in tuple(zip(stats, remote_qcounts)):
                 result.append( (t[0][0], t[0][1], t[1]) )
 
-        elif self.mode in [Mode.TOPIC, Mode.PENDANTS]:
+        elif self.mode in [Mode.SECTION_I, Mode.SECTION_A]:
 
             queries = []
             for entry in stats:
@@ -462,7 +466,7 @@ class ArkUri:
             for t in tuple(zip(stats, remote_qcounts)):
                 result.append( (t[0][0], t[0][1], t[1]) )
 
-        elif self.mode in [Mode.ARCHIVE]:
+        elif self.mode in [Mode.GROUP]:
             remote_qcount = db.anki_query_count([' '.join(self.query())])
             result.append( (stats[0][0], stats[0][1], remote_qcount[0]) )
 
@@ -477,11 +481,8 @@ class AnkiConnection:
 
     def anki_add(self, json):
         pass
-        # topics, mode, summary_name = self.__analyze()
-        # if not mode == Mode.QUEST:
-        #     theparser.error('You need to provide a topic, subtopic, and quest tag')
 
-    def anki_query_count(self, query_list):
+    def anki_query_count(self, query_list, back_check=False):
 
         json_query = json.dumps({
             'action': 'multi',

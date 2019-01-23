@@ -124,7 +124,7 @@ function! meta#leaf()
 
   """ write number of content lines, questions as :stats:
   call cursor([3,1])
-  silent execute 'normal! S:stats: '.b:content_lines.','.len(b:qtags_unique)
+  silent execute 'normal! S:stats: '.len(b:qtags_unique).','.(b:content_lines)
 
   """ save
   silent write

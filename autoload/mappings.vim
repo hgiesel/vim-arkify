@@ -24,7 +24,6 @@ function! mappings#copy(mode)
 
     elseif a:mode == 'v'
       let l:qq='card:1 tag:'.(b:ftag).' Quest:\"*'.(getline('.')).'*\"'
-      call system('curl localhost:8765 -X POST -d ''{"action":"guiBrowse","version":6,"params":{"query": "'.l:qq.'"}}''')
 
     elseif a:mode == 'a'
       let l:view = winsaveview()

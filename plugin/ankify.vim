@@ -52,7 +52,7 @@ nmap <silent> <localleader>i <Plug>(AnkifyInsertTag)
 " c: random number (n characters long)
 
 " autocmd BufWritePre *.* call AnkifyPrintMeta()
-autocmd BufWrite,BufWinEnter $ARCHIVE_ROOT/* call meta#leaf()
+autocmd BufWrite $ARCHIVE_ROOT/* call meta#leaf()
 autocmd QuitPre $ARCHIVE_ROOT/*/README* call meta#readme()
 
 let g:ankify_vim_loaded = v:true

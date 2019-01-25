@@ -472,8 +472,10 @@ class ArkUri:
 
             remote_qcounts, outsiders = db.anki_query_count(queries, check_against=self.query())
 
+            # print('### outsider ' + str(outsiders))
+
             result += [(t[0][0], t[0][1], t[1]) for t in tuple(zip(stats, remote_qcounts))]
-            # result += [(t[0][0], outsiders[0], outsiders[1]) for o in outsiders]
+            result += [o for o in outsiders]
 
         elif self.mode in [Mode.PAGE_I, Mode.PAGE_S, Mode.PAGE_A, Mode.PAGE_B]:
 
@@ -524,18 +526,21 @@ class AnkiConnection:
 
     def anki_query_check_against(self, resps, check_against):
 
-        check_against_query = json.dumps({
+        check_against_query = ' '.join(check_against) + ' deck:{0}*'.format(self.deck_name)
+
+        check_against_req = json.dumps({
             'action': 'findNotes',
             'version': 6,
             'params': {
-                'query': ' '.join(check_against)
+                'query': check_against_query
                 }
             }).encode('utf-8')
 
-        check_against_resp = urllib.request.urlopen(self.req, check_against_query)
+
+        check_against_resp = urllib.request.urlopen(self.req, check_against_req)
         check_against_json = json.loads(check_against_resp.read().decode('utf-8'))
 
-        check_against_filtered  = [entry for entry in check_against_json['result'] if not entry in resps]
+        check_against_filtered = [entry for entry in check_against_json['result'] if not entry in resps]
 
         if len(check_against_filtered):
             outsider_info_query = json.dumps({
@@ -549,21 +554,25 @@ class AnkiConnection:
             outsider_info_resp = urllib.request.urlopen(self.req, outsider_info_query)
             outsider_info_json = json.loads(outsider_info_resp.read().decode('utf-8'))
 
-            tags = [list(filter(lambda tag: re.match('.*::.*', tag), entry['tags'])) for entry in outsider_info_json['result']]
-            displayed_tags = [ ':'.join(re.match('(.*)::(.*)', ts[0]).groups()) if len(ts) == 1 else '???:???' for ts in tags]
+            tags = [list(filter(lambda tag: re.match('.*::.*', tag), entry['tags']))
+                for entry in outsider_info_json['result']]
 
-            quest_fields = [entry['fields'][self.quest_field_name]['value'] for entry in outsider_info_json['result']]
-            quest_ids = [re.search('(?:<[^>]>)*' + self.quest_id_regex, entry).group(1) for entry in quest_fields]
+            displayed_tags = [ ':'.join(re.match('(.*)::(.*)', ts[0]).groups())
+                if len(ts) == 1 else '???:???' for ts in tags]
 
+            quest_fields = [entry['fields'][self.quest_field_name]['value']
+                for entry in outsider_info_json['result']]
 
-           # tags = out
-            # file_ids_possible =  [ for t in tags
-            #     ]
-            # file_ids = [re.search('(?:<[^>]>)*' + self.quest_id_regex, entry).group(1) for entry in quest_fields]
+            quest_ids = [re.sub('(?:<[^>]*>)*?' + self.quest_id_regex + '.*', r'\g<1>', entry)
+                for entry in quest_fields]
 
-            # outsiders_result = [(i, -outsiders.count(i)) for i in set(quest_ids)]
+            zipped_ids = list(zip(displayed_tags, quest_ids))
+            zipped_ids_unique = set(zipped_ids)
 
-            return []
+            result =  [i + (-zipped_ids.count(i),) for i in zipped_ids_unique]
+
+            return result
+
         else:
             return []
 
@@ -662,7 +671,7 @@ if __name__ == '__main__':
             anki_connection = AnkiConnection(
                     deck_name='misc::head',
                     quest_field_name='Quest',
-                    quest_id_regex=r':(\d+)\a*:'
+                    quest_id_regex=r':([0-9]+)\a*:'
                     )
 
             result = getattr(ArkUri(ARGV.uri), ARGV.cmd)(anki_connection)

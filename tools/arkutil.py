@@ -612,6 +612,11 @@ class AnkiConnection:
         pass
 
 if __name__ == '__main__':
+
+    config = None
+    with open('/Users/hgiesel/Library/Application Support/Anki2/addons21/anki-contextualize/config.json') as f:
+        config = json.load(f)
+
     arkParser = argparse.ArgumentParser(description='Manage and query your notes!',
         prog='arkutil')
 
@@ -645,10 +650,6 @@ if __name__ == '__main__':
     subparsers_dict['ark'] = subparsers.add_parser('ark')
 
     ARGV = arkParser.parse_args()
-
-    # if getattr(ARGV, 'infile', None):
-    #     data = ARGV.infile.read().replace('\n', '<br />')
-    #     print(data)
 
     if ARGV.cmd is not None:
         theparser = subparsers_dict[ARGV.cmd]

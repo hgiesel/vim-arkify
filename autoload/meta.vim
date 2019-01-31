@@ -23,19 +23,9 @@ function! meta#toc_on_save()
 endfunction
 
 function! meta#page_on_save()
-  if expand("%:r") == 'README'
-    return 5
-  endif
   let l:view = winsaveview()
 
-  """ write number of content lines, questions as :stats:
-  " call cursor([2,1])
-  " silent execute 'normal! S:stats: '.system('ark stats -p=none -d, :'.expand("%:r")).'dd'
-
-  """ print out any errors
-  " let output = system('ark verify -p=none -d" : " :'.expand("%:r"))
-
-  let cmd = 'ark verify -p=none -d" : " :'.expand("%:r")
+  let cmd = 'ark verify -p=none -d" : " :'.expand('%:r')
   " let cmd = 'echo hi'
   let output = jobstart(cmd, {'on_stdout': {jobid, output, type -> Pecho(output) }}) " append(line('.'), output) }})
 
@@ -43,5 +33,8 @@ function! meta#page_on_save()
 endfunction
 
 function! meta#page_on_exit()
-  return 0
+  if filereadable(expand('%:p'))
+    call cursor([2,1])
+    silent execute 'normal! S:stats: '.substitute(system('ark stats -p=id -d, :'.expand('%:r')), '\n', '', 'g')
+  endif
 endfunction

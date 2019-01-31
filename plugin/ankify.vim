@@ -45,7 +45,7 @@ function! s:follow_link()
 
   let l:selection  = @l
   let l:arkId     = substitute(l:selection, '<*\([^<,]*\)\%(,.*\)>*', '\1', '')
-  let l:fileName  = system('ark paths '.l:arkId)
+  let l:fileName  = system('ark paths -a '.l:arkId)
 
   if v:shell_error == 0
     execute 'edit '.l:fileName
@@ -90,7 +90,7 @@ nmap <silent> <localleader>f <Plug>(AnkifyLinksFollow)
 
 " autocmd BufWritePre *.* call AnkifyPrintMeta()
 autocmd BufWrite $ARCHIVE_ROOT/* call meta#page_on_save()
-autocmd QuitPre $ARCHIVE_ROOT/*/README* call meta#readme_on_exit()
+autocmd QuitPre $ARCHIVE_ROOT/* call meta#page_on_exit()
 
 command! -nargs=1 Z vimgrep "<args>" $ARCHIVE_ROOT/**/*.adoc
 

@@ -41,11 +41,11 @@ nmap <silent> <Plug>(AnkifyCopyBlock) vip:s/\[\[oc\d::\(\_.\{-}\)\(::[^:]*\)\?\]
 
 function! s:follow_link()
   let l:view = winsaveview()
-  normal! lva<a<"ly
+  normal! l>va<a<"ly
 
   let l:selection  = @l
   let l:arkId     = substitute(l:selection, '<*\([^<,]*\)\%(,.*\)>*', '\1', '')
-  let l:fileName  = system('ark paths -a '.l:arkId)
+  let l:fileName  = system('ark paths '.l:arkId)
 
   if v:shell_error == 0
     execute 'edit '.l:fileName
@@ -93,8 +93,10 @@ nmap <silent> <localleader>f <Plug>(AnkifyLinksFollow)
 " c: random number (n characters long)
 
 " autocmd BufWritePre *.* call AnkifyPrintMeta()
+
 autocmd BufWrite $ARCHIVE_ROOT/* call meta#page_on_save()
 autocmd QuitPre $ARCHIVE_ROOT/* call meta#page_on_exit()
+autocmd BufEnter $ARCHIVE_ROOT/**/README* call meta#toc_on_enter()
 
 command! -nargs=1 Z vimgrep "<args>" $ARCHIVE_ROOT/**/*.adoc
 

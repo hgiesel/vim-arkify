@@ -64,7 +64,9 @@ nmap <silent> <Plug>(AnkifyLinksFollow) :call<sid>follow_link()<cr>
 
 nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call mappings#copy('q')<cr>
 nmap <silent> <Plug>(AnkifyAnkiQuery) :call mappings#copy('v')<cr>
+
 nmap <silent> <Plug>(AnkifyAnkiAddCard) :call mappings#copy('a')<cr>
+nmap <silent> <Plug>(AnkifyAnkiBrowse) :call mappings#copy('b')<cr>
 
 nmap <silent> <Plug>(AnkifyInsertTag) :call mappings#insertTag('c',2)<cr>
 
@@ -74,8 +76,10 @@ nmap <silent> <localleader>F <Plug>(AnkifyPrevFile)
 nmap <silent> <localleader>t <Plug>(AnkifyCopyFullyQualifiedTag)
 nmap <silent> <localleader>T <Plug>(AnkifyCopyFtag)
 nmap <silent> <localleader>q <Plug>(AnkifyCopyAnkiQuery)
+
 nmap <silent> <localleader>v <Plug>(AnkifyAnkiQuery)
 nmap <silent> <localleader>a <Plug>(AnkifyAnkiAddCard)
+nmap <silent> <localleader>b <Plug>(AnkifyAnkiBrowse)
 
 nmap <silent> <localleader>i <Plug>(AnkifyInsertTag)
 

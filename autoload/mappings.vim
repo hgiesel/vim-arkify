@@ -25,13 +25,26 @@ function! mappings#copy(mode)
     elseif a:mode == 'v'
       let l:qq='card:1 tag:'.(b:ftag).' Quest:\"*'.(getline('.')).'*\"'
 
+    elseif a:mode == 'b'
+      execute 'normal! "ayy'
+      let l:qid = substitute(@a, '.*:\([0-9]\+\):.*', '\1', '')
+
+      let cmd = 'ark browse '.expand('%:p:h:t').'::'.expand('%:r').'#'.l:qid
+      call system(cmd)
+
     elseif a:mode == 'a'
       let l:view = winsaveview()
       execute 'normal! "ayip'
-      let l:entry = json_encode(substitute(@a,'\%x00','<br/>',"g"))
+      let l:entry = @a
+
+      let l:qid = substitute(@a, '.*:\([0-9]\+\):.*', '\1', '')
+      let l:content = substitute(@a, '.\{-}\n', '', '')
+
+      let cmd = 'echo '''.content.''' | ark add '.expand('%:p:h:t').'::'.expand('%:r').'#'.l:qid
+      call system(cmd)
+
       call winrestview(l:view)
 
-      call system('curl localhost:8765 -X POST -d ''{"action": "guiAddCards","version":6, "params":{"note":{"deckName": "'.(g:ankify_deckName).'", "modelName":"'.(g:ankify_modelName).'", "fields":{"'.(g:ankify_mainField).'":'.(l:entry).'}, "options": {"closeAfterAdding": true}, "tags": [ "'.(b:ftag).'" ] }}}''')
 
     elseif a:mode == 't'
       let @+=(b:ftag).(getline('.'))
@@ -43,16 +56,17 @@ function! mappings#copy(mode)
 endfunction
 
 function! mappings#insertTag(mode, length)
-  if !empty(b:qtags_unique)
-    let l:next_qtag=b:qtags_unique[-1] + 1
-    let l:commandv1='normal! 0Di:%0'.a:length.'d:'
-    let l:commandv2=printf(l:commandv1,l:next_qtag)
-  else
+
+  let l:last_qid = system('ark stats :'.expand('%:r').' -p=none | cut -f1 | sort | tail -1')
+  if l:last_qid == ''
     let l:commandv1='normal! 0Di:%0'.a:length.'d:'
     let l:commandv2=printf(l:commandv1,1)
+  else
+    let l:next_qid = l:last_qid + 1
+    let l:commandv1='normal! 0Di:%0'.a:length.'d:'
+    let l:commandv2=printf(l:commandv1,l:next_qid)
   endif
 
   execute l:commandv2
-  silent write
-  call meta#leaf()
+  write
 endfunction

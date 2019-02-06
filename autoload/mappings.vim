@@ -51,7 +51,13 @@ function! mappings#copy(mode)
     endif
 
   else
-    echomsg "Can only be executed on qtag lines!"
+    if a:mode == 'b'
+      let cmd = 'ark browse '.expand('%:p:h:t').'::'.expand('%:r')
+      call system(cmd)
+    else
+
+      echomsg "Can only be executed on qtag lines!"
+    endif
   endif
 endfunction
 

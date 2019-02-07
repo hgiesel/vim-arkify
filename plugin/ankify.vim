@@ -75,6 +75,8 @@ nmap <silent> <Plug>(AnkifyAnkiBrowse) :call mappings#copy('b')<cr>
 
 nmap <silent> <Plug>(AnkifyInsertTag) :call mappings#insertTag('c',2)<cr>
 nmap <silent> <Plug>(AnkifyInsertHash) :.!grand 8<cr>
+nmap <silent> <Plug>(AnkifyNewPage) :.! read b; touch "$b".adoc; echo "$b"<cr>
+
 
 nmap <silent> <localleader>u <Plug>(AnkifyUpFile)
 nmap <silent> <localleader>] <Plug>(AnkifyNextFile)
@@ -83,6 +85,8 @@ nmap <silent> <localleader>[ <Plug>(AnkifyPrevFile)
 nmap <silent> <localleader>t <Plug>(AnkifyCopyFullyQualifiedTag)
 nmap <silent> <localleader>T <Plug>(AnkifyCopyFtag)
 nmap <silent> <localleader>q <Plug>(AnkifyCopyAnkiQuery)
+
+nmap <silent> <localleader>n <Plug>(AnkifyNewPage)
 
 nmap <silent> <localleader>v <Plug>(AnkifyAnkiQuery)
 nmap <silent> <localleader>a <Plug>(AnkifyAnkiAddCard)

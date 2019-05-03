@@ -11,6 +11,18 @@ function! mappings#jumpRelative(i)
   endif
 endfunction
 
+function! mappings#arkadd()
+  let l:view = winsaveview()
+  execute 'normal! "ayip'
+
+  let l:content = substitute(@a, '.\{-}\n', '', '')
+  let l:cmd = 'echo '''.content.''' | ark add '.expand('%:p:h:t').'::'.expand('%:r').' | tr -d ''\n'''
+  let l:resp = system(l:cmd)
+
+  execute 'normal! -I:' . l:resp . ':'
+  call winrestview(l:view)
+endfunction
+
 function! mappings#copy(mode)
   if a:mode == 'f'
     let @+=(b:ftag)
@@ -40,8 +52,8 @@ function! mappings#copy(mode)
       let l:qid = substitute(@a, '.*:\([0-9]\+\):.*', '\1', '')
       let l:content = substitute(@a, '.\{-}\n', '', '')
 
-      let cmd = 'echo '''.content.''' | ark add '.expand('%:p:h:t').'::'.expand('%:r').'#'.l:qid
-      call system(cmd)
+      let cmd = 'echo '''.content.''' | ark add '.expand('%:p:h:t').'::'.expand('%:r')
+      echo system(cmd)
 
       call winrestview(l:view)
 

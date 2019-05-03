@@ -25,9 +25,9 @@ autocmd BufWritePost * if g:Pecho != []
       \| endif
 
 " Global variables
-let g:ankify_deckName   = 'misc::head'
+let g:ankify_deckName   = 'misc::hd'
 let g:ankify_modelName  = 'Cloze (overlapping)'
-let g:ankify_mainField  = 'Quest'
+let g:ankify_mainField  = 'Original'
 " unimplemented
 let g:ankify_questField = 'Cloze (overlapping)'
 
@@ -70,10 +70,10 @@ nmap <silent> <Plug>(AnkifyLinksClear) :%s/<<!\?\([^>,]\+\).*>>/\=substitute('<<
 nmap <silent> <Plug>(AnkifyCopyAnkiQuery) :call mappings#copy('q')<cr>
 nmap <silent> <Plug>(AnkifyAnkiQuery) :call mappings#copy('v')<cr>
 
-nmap <silent> <Plug>(AnkifyAnkiAddCard) :call mappings#copy('a')<cr>
+nmap <silent> <Plug>(AnkifyAnkiAddCard) :call mappings#arkadd()<cr>
 nmap <silent> <Plug>(AnkifyAnkiBrowse) :call mappings#copy('b')<cr>
 
-nmap <silent> <Plug>(AnkifyInsertTag) :call mappings#insertTag('c',2)<cr>
+nmap <silent> <Plug>(AnkifyInsertTag) :call mappings#insertTag('c', 3)<cr>
 nmap <silent> <Plug>(AnkifyInsertHash) :.!grand 8<cr>
 nmap <silent> <Plug>(AnkifyNewPage) :.! read b; touch "$b".adoc; echo "$b"<cr>
 

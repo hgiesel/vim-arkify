@@ -1,5 +1,18 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
 
+function! mappings#display_stats(arg)
+  if a:arg[0] != '' && filereadable(expand('%:p'))
+    let l:view = winsaveview()
+    echo substitute(a:arg[0], '\n', '', 'g')
+    call winrestview(l:view)
+  endif
+endfunction
+
+function! mappings#get_stats()
+  let l:stats_cmd = 'ark stats -p=id -d, :'.expand('%:r')
+  let l:stats_output = jobstart(l:stats_cmd, {'on_stdout': {jobid, output, type -> mappings#display_stats(output) }})
+endfunction
+
 function! mappings#jumpRelative(i)
   let currentFile = expand('%:t')
   " get the number of the end of file name
@@ -29,10 +42,10 @@ function! mappings#copy(mode)
     return
   endif
 
-  if match(getline('.'), '^:\d\{1,4\}\a*:$') != -1
+  if match(getline('.'), '^:\d\+:$') != -1
 
     if a:mode == 'q'
-      let @+='card:1 tag:'.(b:ftag).' Quest:"*'.(getline('.')).'*"'
+      let @+='"card:1" "tag:'.(b:ftag).'" "Quest:*'.(getline('.')).'*"'
 
     elseif a:mode == 'v'
       let l:qq='card:1 tag:'.(b:ftag).' Quest:\"*'.(getline('.')).'*\"'
@@ -41,8 +54,8 @@ function! mappings#copy(mode)
       execute 'normal! "ayy'
       let l:qid = substitute(@a, '.*:\([0-9]\+\):.*', '\1', '')
 
-      let cmd = 'ark browse '.expand('%:p:h:t').'::'.expand('%:r').'#'.l:qid
-      call system(cmd)
+      let l:cmd = 'ark browse '.expand('%:p:h:t').'::'.expand('%:r').'#'.l:qid
+      call system(l:cmd)
 
     elseif a:mode == 'a'
       let l:view = winsaveview()

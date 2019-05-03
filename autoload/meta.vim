@@ -31,13 +31,8 @@ function! meta#prepare_stats(arg)
   endif
 endfunction
 
-function! meta#page_on_save()
-  let l:view = winsaveview()
-  let b:pageid =  expand('%:p:h:t').':'.expand('%:r')
 
-  let l:verify_cmd = 'ark verify -p=none -d" : " :'.expand('%:r')
-  let l:verify_output = jobstart(l:verify_cmd, {'on_stdout': {jobid, output, type -> Pecho(output) }}) " append(line('.'), output) }})
-
+function! meta#page_on_save_stats()
   let l:stats_cmd = 'ark stats -p=id -d, :'.expand('%:r')
   let l:stats_output = jobstart(l:stats_cmd, {'on_stdout': {jobid, output, type -> meta#prepare_stats(output) }}) " append(line('.'), output) }})
 
@@ -46,6 +41,14 @@ function! meta#page_on_save()
     silent execute b:stats_fix_cmd
     silent noautocmd write
   endif
+endfunction
+
+function! meta#page_on_save()
+  let l:view = winsaveview()
+  let b:pageid =  expand('%:p:h:t').':'.expand('%:r')
+
+  let l:verify_cmd = 'ark verify -p=none -d" : " :'.expand('%:r')
+  let l:verify_output = jobstart(l:verify_cmd, {'on_stdout': {jobid, output, type -> Pecho(output) }}) " append(line('.'), output) }})
 
   call winrestview(l:view)
 endfunction

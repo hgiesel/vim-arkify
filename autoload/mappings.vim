@@ -1,4 +1,40 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
+function! mappings#pagerefs_insert()
+  let l:whole_file = readfile(expand('%'))
+
+  for elem in l:whole_file
+    let findings = []
+    call substitute(elem, '\%(<<.*\)\([^>,]\+\).*\%(>>\)', '\=add(l:findings, submatch(0))', 'g')
+
+    if len(findings) > 0
+      for f in findings
+        let l:pageref = substitute(f, '\%(<<!\?\)\(.*\)\%(,.*\)', '\1', '')
+
+        let l:pagerefs_cmd = "ark headings -p=id -d$'\n' ".(l:pageref)." | head -2 | head -c -1"
+        let l:stats_output = jobstart(l:pagerefs_cmd, {'on_stdout': {jobid, output, type -> mappings#pagerefs_insert2(output) }})
+      endfor
+    endif
+  endfor
+endfunction
+
+function! mappings#pagerefs_insert2(arg)
+  if a:arg[0] != '' && filereadable(expand('%:p'))
+    let l:view = winsaveview()
+
+    let l:longid  = a:arg[0]
+    let l:heading = a:arg[1]
+
+    let l:used_section = substitute(l:longid, ':.*', '', '')
+    let l:used_page = substitute(l:longid, '.*:', '', '')
+
+    if l:used_section == b:sectioncomp
+      silent execute ':%s/\(<<!\?\).*'.l:used_page.',.\{-}>>/\1:'.l:used_page.','.l:heading.'>>/'
+    else
+      silent execute ':%s/\(<<!\?\).*'.l:used_page.',.\{-}>>/\1'.l:longid.','.l:heading.'>>/'
+    endif
+    call winrestview(l:view)
+  endif
+endfunction
 
 function! mappings#display_stats(arg)
   if a:arg[0] != '' && filereadable(expand('%:p'))
@@ -20,7 +56,7 @@ function! mappings#jumpRelative(i)
   let newFile = substitute(currentFile, "\\d", index, "")
 
   if filereadable(newFile)
-    execute "edit " . newFile
+    execute 'edit '.newFile
   endif
 endfunction
 

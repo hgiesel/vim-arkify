@@ -110,5 +110,19 @@ autocmd BufLeave $ARCHIVE_ROOT/**/README* call meta#toc_on_leave()
 autocmd BufLeave $ARCHIVE_ROOT/* call meta#page_on_leave()
 
 command! -nargs=1 Z vimgrep "<args>" $ARCHIVE_ROOT/**/*.adoc
+command! -nargs=1 Ark call Ark("<args>")
+
+function! Ark(args)
+  echo a:args
+
+  let l:path = system("ark paths '" . a:args . "'")[0:-2] " skip newline at the end
+
+  if l:path[-1:] == ':'
+    " edit if path contains lineno
+    let l:path = substitute(l:path, '\(.*\):\(\d*\):', '+\2 \1', '')
+  endif
+
+  execute 'edit ' . l:path
+endfunction
 
 let g:ankify_vim_loaded = v:true

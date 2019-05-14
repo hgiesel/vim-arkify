@@ -34,10 +34,7 @@ function! meta#cal_on_save()
       elseif l:line =~# '^\. .*$'
         let l:current_day_output .= '⚪'
       endif
-
-
     endif
-
   endfor
 
   silent write
@@ -122,10 +119,13 @@ function! meta#page_go_up()
 endfunction
 
 function! meta#page_go_upup()
-  if exists('g:loaded_unite')
-    silent execute 'Unite grep:'.b:archive_root.'::\\('.b:sectioncomp.'\\)\\?\:'.b:pagecomp
+  if exists('g:loaded_denite')
+    let l:first_cmd = 'grep:.::<<\:'.b:pagecomp.',.*>>'
+    let l:second_cmd = 'grep:'.b:archive_root.'::<<'.b:pageid.',.*>>'
+    let l:full_cmd = 'Denite ' . l:first_cmd . ' ' . l:second_cmd
+    execute l:full_cmd
   else
-    echo 'Command needs unite.vim to be installed'
+    echo 'Command needs denite.vim to be installed'
   endif
 endfunction
 
@@ -154,7 +154,7 @@ function! meta#page_on_enter()
   let b:archive_root = system('ark paths')[0:-2]
 
   let b:sectioncomp = expand('%:p:h:t')
-  let b:pagecomp    = expand('%:r')
+  let b:pagecomp    = expand('%:p:t:r')
   let b:pageid      = (b:sectioncomp).':'.(b:pagecomp)
 
   if exists('b:stats_fix_cmd')
@@ -163,7 +163,7 @@ function! meta#page_on_enter()
 endfunction
 
 function! meta#toc_on_enter()
-  let b:current_toc = expand('%:p:h:t').':'.expand('%:t:r')
+  let b:toc_current = expand('%:p:h:t').':'.expand('%:t:r')
 
   if !exists('g:toc_up')
     let g:toc_up = []
@@ -183,7 +183,7 @@ function! meta#set_context(list)
 endfunction
 
 function! meta#toc_on_leave()
-  if (get(g:toc_up, -1, '') != b:current_toc) && ! exists('b:going_up') && ! exists('b:going_rel')
+  if (get(g:toc_up, -1, '') != b:toc_current) && ! exists('b:going_up') && ! exists('b:going_rel')
     call add(g:toc_up, expand('%:p:h:t').':'.expand('%:r'))
   endif
 

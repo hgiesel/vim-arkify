@@ -119,10 +119,14 @@ function! Ark(args)
 
   if l:path[-1:] == ':'
     " edit if path contains lineno
-    let l:path = substitute(l:path, '\(.*\):\(\d*\):', '+\2 \1', '')
+    let l:cmd_pre = '+silent\\ execute\\ ''normal!\\ '
+    let l:cmd_post = 'G\\ zMzv'''
+    let l:path = substitute(l:path, '\(.*\):\(\d*\):', l:cmd_pre.'\2'.l:cmd_post.' \1', '')
   endif
 
-  execute 'edit ' . l:path
+  " echo l:path
+  execute 'edit '.l:path
+
 endfunction
 
 let g:ankify_vim_loaded = v:true

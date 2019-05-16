@@ -45,6 +45,7 @@ nmap <silent> <Plug>(AnkifyLinksSetContext) :call meta#toc_on_leave_wrapper()<cr
 nmap <silent> <Plug>(AnkifySearchArchive) :call meta#search_archive()<cr>
 nmap <silent> <Plug>(AnkifySearchTocs) :call meta#search_tocs()<cr>
 nmap <silent> <Plug>(AnkifySearchTocContext) :call meta#search_toc_context()<cr>
+nmap <silent> <Plug>(AnkifySearchExpandedTocContext) :call meta#search_expanded_toc_context()<cr>
 
 nmap <silent> <localleader>u <Plug>(AnkifyUpFile)
 nmap <silent> <localleader>U <Plug>(AnkifyUpUpFile)
@@ -66,6 +67,7 @@ nmap <silent> <localleader>F <Plug>(AnkifyLinksSetContext)
 nmap <silent> <localleader>/a <Plug>(AnkifySearchArchive)
 nmap <silent> <localleader>/t <Plug>(AnkifySearchTocs)
 nmap <silent> <localleader>/c <Plug>(AnkifySearchTocContext)
+nmap <silent> <localleader>/C <Plug>(AnkifySearchExpandedTocContext)
 
 " TODO should be configurable on what tags should look like
 " a: count up

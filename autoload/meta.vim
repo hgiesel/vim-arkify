@@ -110,8 +110,17 @@ function! meta#search_tocs()
 endfunction
 
 function! meta#search_toc_context()
-  if exists('w:toc_files') && type(w:toc_files[0]) == 1 " first value must be a string
+  if exists ('w:toc_current') && exists('w:toc_files')
     call meta#search_meta_search(w:toc_files)
+  else
+    echo 'No toc context established'
+  endif
+endfunction
+
+function! meta#search_expanded_toc_context()
+  if exists('w:toc_current')
+    let toc_cmd = 'ark paths --expand-tocs '.w:toc_current.'//@:@ | head -c -1'
+    let toc_output = jobstart(toc_cmd, {'on_stdout': {jobid, output, type -> meta#search_meta_search(output) }})
   else
     echo 'No toc context established'
   endif
@@ -332,5 +341,3 @@ function! meta#follow_link(ark_uri)
   normal! 
   call winrestview(l:view)
 endfunction
-
-

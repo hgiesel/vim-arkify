@@ -29,12 +29,14 @@ endfunction
 
 function! mappings#pagerefs_insert2_tocs(pageid, input)
   if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
+    let l:view = winsaveview()
     for elem in a:input
       let [l:pageref, l:heading, _] = split(elem, '|')
       let l:pageref = substitute(l:pageref, '^'.b:sectioncomp.'\(:.*\)', '\1', '')
 
       silent execute ':%s/\(<<!\?\).*'.l:pageref.',\?.\{-}>>/\1'.l:pageref.','.l:heading.'>>/'
     endfor
+    call winrestview(l:view)
   endif
 endfunction
 

@@ -78,7 +78,7 @@ nmap <silent> <Plug>(AnkifyInsertHash) :.!grand 8<cr>
 nmap <silent> <Plug>(AnkifyNewPage) :.! read b; touch "$b".adoc; echo ". <<:$b,>>"<cr>
 nmap <silent> <Plug>(AnkifyDisplayStats) :call mappings#get_stats()<cr>
 
-nmap <silent> <Plug>(AnkifySearchArchive) :call meta#search_archie()<cr>
+nmap <silent> <Plug>(AnkifySearchArchive) :call meta#search_archive()<cr>
 nmap <silent> <Plug>(AnkifySearchTocs) :call meta#search_tocs()<cr>
 nmap <silent> <Plug>(AnkifySearchTocContext) :call meta#search_toc_context()<cr>
 

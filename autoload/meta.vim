@@ -121,7 +121,7 @@ function! meta#search_meta_search(input)
   if a:input != ['']
     if len(a:input) > 0
       if exists('g:loaded_denite')
-        call denite#start([{'name': 'grep', 'args': [a:input]}])
+        call denite#start([{'name': 'grep', 'args': [a:input, '']}])
       else
         echo 'Denite is not installed'
       endif

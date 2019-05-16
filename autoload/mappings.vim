@@ -3,7 +3,7 @@ function! mappings#pagerefs_insert()
 
   if expand('%') =~ 'README'
     let l:pageid_current = b:pageid
-    let l:toc_pagerefs_cmd = "ark headings -p=id -od, ".(l:pageid_current)."//@:@ | head -c -1"
+    let l:toc_pagerefs_cmd = "ark headings -p=id -od'|' ".(l:pageid_current)."//@:@ | head -c -1"
     let l:toc_pagerefs_output = jobstart(l:toc_pagerefs_cmd, {'on_stdout': {jobid, output, type -> mappings#pagerefs_insert2_tocs(l:pageid_current, output) }})
 
   else
@@ -30,7 +30,7 @@ endfunction
 function! mappings#pagerefs_insert2_tocs(pageid, input)
   if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
     for elem in a:input
-      let [l:pageref, l:heading, _] = split(elem, ',')
+      let [l:pageref, l:heading, _] = split(elem, '|')
       let l:pageref = substitute(l:pageref, '^'.b:sectioncomp.'\(:.*\)', '\1', '')
 
       silent execute ':%s/\(<<!\?\).*'.l:pageref.',\?.\{-}>>/\1'.l:pageref.','.l:heading.'>>/'

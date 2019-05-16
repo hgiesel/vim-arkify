@@ -38,7 +38,7 @@ nmap <silent> <Plug>(AnkifyNewPage) :.! read b; touch "$b".adoc; echo ". <<:$b,>
 nmap <silent> <Plug>(AnkifyDisplayStats) :call mappings#get_stats()<cr>
 
 nmap <silent> <Plug>(AnkifyLinksInsert) :call mappings#pagerefs_insert()<cr>
-nmap <silent> <Plug>(AnkifyLinksClear) :%s/<<!\?\([^>,]\+\).*>>/\=substitute('<<'.submatch(1).'>>','\n','','g')<cr>
+nmap <silent> <Plug>(AnkifyLinksClear) :%s/<<\(!\?[^>,]\+\).*>>/\=substitute('<<'.submatch(1).'>>','\n','','g')<cr>
 nmap <silent> <Plug>(AnkifyLinksFollow) :call meta#follow_link_with_current_line()<cr>
 nmap <silent> <Plug>(AnkifyLinksSetContext) :call meta#toc_on_leave_wrapper()<cr>
 

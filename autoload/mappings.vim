@@ -1,36 +1,57 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
 function! mappings#pagerefs_insert()
-  let l:whole_file = readfile(expand('%'))
 
-  for elem in l:whole_file
-    let findings = []
-    call substitute(elem, '\%(<<.*\)\([^>,]\+\).*\%(>>\)', '\=add(l:findings, submatch(0))', 'g')
+  if expand('%') =~ 'README'
+    let l:pageid_current = b:pageid
+    let l:toc_pagerefs_cmd = "ark headings -p=id -od, ".(l:pageid_current)."//@:@ | head -c -1"
+    let l:toc_pagerefs_output = jobstart(l:toc_pagerefs_cmd, {'on_stdout': {jobid, output, type -> mappings#pagerefs_insert2_tocs(l:pageid_current, output) }})
 
-    if len(findings) > 0
-      for f in findings
-        let l:pageref = substitute(f, '\%(<<!\?\)\(.*\)\%(,.*\)', '\1', '')
+  else
+    let l:whole_file = readfile(expand('%'))
 
-        let l:pagerefs_cmd = "ark headings -p=id -d$'\n' ".(l:pageref)." | head -2 | head -c -1"
-        let l:stats_output = jobstart(l:pagerefs_cmd, {'on_stdout': {jobid, output, type -> mappings#pagerefs_insert2(output) }})
-      endfor
-    endif
-  endfor
+    for elem in l:whole_file
+      let l:pageid_current = b:pageid
+      let findings = []
+      call substitute(elem, '<<\([^>,]\+\).*>>', '\=add(l:findings, submatch(0))', 'g')
+
+      if len(findings) > 0
+        for f in findings
+          let l:pageref = substitute(f, '<<!\?\([^,>]\+\).*>>', '\1', '')
+          echo string(l:pageref)
+
+          let l:pagerefs_cmd = "ark headings -p=id -d$'\n' ".(l:pageref)." | head -2 | head -c -1"
+          let l:stats_output = jobstart(l:pagerefs_cmd, {'on_stdout': {jobid, output, type -> mappings#pagerefs_insert2_contentpages(l:pageid_current, output) }})
+        endfor
+      endif
+    endfor
+  endif
 endfunction
 
-function! mappings#pagerefs_insert2(arg)
-  if a:arg[0] != '' && filereadable(expand('%:p'))
+function! mappings#pagerefs_insert2_tocs(pageid, input)
+  if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
+    for elem in a:input
+      let [l:pageref, l:heading, _] = split(elem, ',')
+      let l:pageref = substitute(l:pageref, '^'.b:sectioncomp.'\(:.*\)', '\1', '')
+
+      silent execute ':%s/\(<<!\?\).*'.l:pageref.',\?.\{-}>>/\1'.l:pageref.','.l:heading.'>>/'
+    endfor
+  endif
+endfunction
+
+function! mappings#pagerefs_insert2_contentpages(pageid, input)
+  if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
     let l:view = winsaveview()
 
-    let l:longid  = a:arg[0]
-    let l:heading = a:arg[1]
+    let l:longid  = a:input[0]
+    let l:heading = a:input[1]
 
     let l:used_section = substitute(l:longid, ':.*', '', '')
     let l:used_page = substitute(l:longid, '.*:', '', '')
 
     if l:used_section == b:sectioncomp
-      silent execute ':%s/\(<<!\?\).*'.l:used_page.',.\{-}>>/\1:'.l:used_page.','.l:heading.'>>/'
+      silent execute ':%s/\(<<!\?\).*'.l:used_page.',\?.\{-}>>/\1:'.l:used_page.','.l:heading.'>>/'
     else
-      silent execute ':%s/\(<<!\?\).*'.l:used_page.',.\{-}>>/\1'.l:longid.','.l:heading.'>>/'
+      silent execute ':%s/\(<<!\?\).*'.l:used_page.',\?.\{-}>>/\1'.l:longid.','.l:heading.'>>/'
     endif
     call winrestview(l:view)
   endif

@@ -1,5 +1,4 @@
 """""""""""""""""""" Print meta information """""""""""""""""""
-
 function! meta#cal_on_save()
   let l:view = winsaveview()
 
@@ -295,6 +294,7 @@ endfunction
 
 function! meta#set_context(list)
   if a:list != ['']
+
     let w:toc_pagerefs = []
     let w:toc_linenos = []
     let w:toc_files = []
@@ -308,6 +308,7 @@ function! meta#set_context(list)
     endfor
 
     let w:toc_idx = index(w:toc_pagerefs, b:pageid)
+
   endif
 endfunction
 

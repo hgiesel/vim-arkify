@@ -59,9 +59,6 @@ function! meta#toc_on_save()
   call cursor([2,1])
   silent execute 'normal! S:tag: '.b:topic
 
-  """ save
-  " silent write
-
   call winrestview(l:view)
 endfunction
 
@@ -94,105 +91,186 @@ function! meta#page_on_save()
   call winrestview(l:view)
 endfunction
 
-function! meta#page_go_up()
-  if exists('g:toc_up') && len(g:toc_up) > 0
-    let l:upfile = remove (g:toc_up, -1)
-
-    let l:file = system('ark paths '.l:upfile)
-  endif
-
-  if exists('l:file') && filereadable(l:file) != 1
-    let b:going_up = v:true
-    let l:idx = index(g:toc_context, b:pageid)
-
-    if l:idx != -1
-      silent execute 'edit +normal!\ G'.g:toc_linenos[l:idx].'zz '.l:file
+function! meta#search_archive()
+  if exists('g:archive_root')
+    if exists('g:loaded_denite')
+      call denite#start([{'name': 'grep', 'args': [g:archive_root]}])
     else
-      silent execute 'edit '.l:file
-    end
+      echo 'Denite is not installed'
+    endif
 
-  elseif exists('l:file')
-    echo 'This toc is not readable: '.l:file
   else
-    echo 'No toc available'
+    echo 'Archive root is not set'
+  endif
+endfunction
+
+function! meta#search_tocs()
+    let toc_cmd = 'ark paths --tocs @:@ | head -c -1'
+    let toc_output = jobstart(toc_cmd, {'on_stdout': {jobid, output, type -> meta#search_meta_search(output) }})
+endfunction
+
+function! meta#search_toc_context()
+  if exists('w:toc_files') && type(w:toc_files[0]) == 1 " first value must be a string
+    call meta#search_meta_search(w:toc_files)
+  else
+    echo 'No toc context established'
+  endif
+endfunction
+
+function! meta#search_meta_search(input)
+  if a:input != ['']
+    if len(a:input) > 0
+      if exists('g:loaded_denite')
+        call denite#start([{'name': 'grep', 'args': [a:input]}])
+      else
+        echo 'Denite is not installed'
+      endif
+    else
+      echo 'No files to search were found'
+    endif
   endif
 endfunction
 
 function! meta#page_go_upup()
   if exists('g:loaded_denite')
     let l:first_cmd = 'grep:.::<<\:'.b:pagecomp.',.*>>'
-    let l:second_cmd = 'grep:'.b:archive_root.'::<<'.b:pageid.',.*>>'
-    let l:full_cmd = 'Denite ' . l:first_cmd . ' ' . l:second_cmd
+    let l:second_cmd = 'grep:'.g:archive_root.'::<<'.substitute(b:pageid, ':', '\\:', '').',.*>>'
+    let l:full_cmd = 'Denite -no-empty ' . l:first_cmd . ' ' . l:second_cmd
     execute l:full_cmd
   else
     echo 'Command needs denite.vim to be installed'
   endif
 endfunction
 
-function! meta#page_go_rel(rel)
-  if exists('g:toc_context')
-    let l:idx = index(g:toc_context, b:pageid)
-  endif
+function! meta#page_go_up()
+  if exists('w:toc_history_pagerefs') && exists('w:toc_idx')
 
-  if exists('l:idx') && l:idx != -1 
-    let b:going_rel = v:true
+    if len(w:toc_history_pagerefs) == 0
+      echo 'No toc context available'
+      return
+    end
 
-    let l:relid = get(g:toc_context, l:idx + a:rel, g:toc_context[0])
-    let l:relfile = system('ark paths '.l:relid)
-    if filereadable(l:relfile) != 1
-      silent execute 'edit '.l:relfile
+    let l:upfile = w:toc_history_files[-1]
+
+    if filereadable(l:upfile)
+      let b:going_up = v:true
+
+      if w:toc_idx != -1
+        silent execute 'edit +normal!\ G'.w:toc_linenos[w:toc_idx].'zz '.l:upfile
+      else
+        silent execute 'edit '.l:upfile
+      end
+
+      call remove(w:toc_history_files, -1)
+      call remove(w:toc_history_pagerefs, -1)
+
+    else
+      echo 'Toc is not readable: '.l:upfile
     endif
-  elseif exists('l:idx')
-    echo 'File is not within toc context'
-  else
-    echo 'No toc context'
+  endif
+endfunction
+
+
+function! meta#page_go_rel(rel)
+  if exists('w:toc_files') && exists('w:toc_idx') && w:toc_idx != -1 
+
+    let b:going_rel = v:true
+    let l:relfile = get(w:toc_files, w:toc_idx + a:rel, w:toc_files[0])
+
+    if filereadable(l:relfile)
+      silent execute 'edit '.l:relfile
+    else
+      echo 'File is not readable: '.l:relfile
+    endif
+
   endif
 endfunction
 
 function! meta#page_on_enter()
-  " cut off newline character
-  let b:archive_root = system('ark paths')[0:-2]
+  let b:going_up = v:false
+  let b:going_rel = v:false
 
   let b:sectioncomp = expand('%:p:h:t')
   let b:pagecomp    = expand('%:p:t:r')
   let b:pageid      = (b:sectioncomp).':'.(b:pagecomp)
+
+  " cut off newline character
+  if ! exists('g:archive_root')
+    let g:archive_root = system('ark paths')[0:-2]
+  endif
+
+  if exists('w:toc_pagerefs')
+    let w:toc_idx = index(w:toc_pagerefs, b:pageid)
+  endif
 
   if exists('b:stats_fix_cmd')
     unlet b:stats_fix_cmd
   endif
 endfunction
 
-function! meta#toc_on_enter()
-  let b:toc_current = expand('%:p:h:t').':'.expand('%:t:r')
+function! meta#page_on_leave()
+endfunction
 
-  if !exists('g:toc_up')
-    let g:toc_up = []
+function! meta#toc_on_enter()
+  let b:going_up  = v:false
+  let b:going_rel = v:false
+
+  let b:sectioncomp = expand('%:p:h:t')
+  let b:pagecomp    = expand('%:p:t:r')
+  let b:pageid      = (b:sectioncomp).':'.(b:pagecomp)
+
+  " cut off newline character
+  if ! exists('g:archive_root')
+    let g:archive_root = system('ark paths')[0:-2]
+  endif
+
+  if ! exists('w:toc_history_files')
+    let w:toc_history_files = []
+    let w:toc_history_pagerefs = []
+
+    let context_cmd = 'ark pagerefs -p=none -d, '.b:pageid.' | head -c -1'
+    let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> meta#set_context(output) }})
+
+    let w:toc_current = b:pageid
+
+  endif
+
+  if exists('w:toc_pagerefs')
+    let w:toc_idx = index(w:toc_pagerefs, b:pageid)
+  endif
+endfunction
+
+function! meta#toc_on_leave()
+  " only add to toc_history if you don't leave the current toc_history +
+  " you're not going rel or up
+  if exists('w:toc_history_pagerefs') && exists('w:toc_history_files')
+        \ && (get(w:toc_history_pagerefs, -1, '') != b:pageid) && ! b:going_up && ! b:going_rel
+    call add(w:toc_history_pagerefs, b:pageid)
+    call add(w:toc_history_files, expand('%:p'))
+  endif
+
+  if ! b:going_up && ! b:going_rel
+    let context_cmd = 'ark pagerefs -p=none -d, '.b:pageid.' | head -c -1'
+    let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> meta#set_context(output) }})
+
+    let w:toc_current = b:pageid
   endif
 endfunction
 
 function! meta#set_context(list)
   if a:list != ['']
-    let g:toc_context = []
-    let g:toc_linenos = []
+    let w:toc_pagerefs = []
+    let w:toc_linenos = []
+    let w:toc_files = []
+
     for elem in a:list
-      let [l:file, l:lineno] = split(elem, ',')
-      call add(g:toc_context, l:file)
-      call add(g:toc_linenos, l:lineno + 1)
+      let [l:pageref, l:lineno, l:file] = split(elem, ',')
+
+      call add(w:toc_pagerefs, l:pageref)
+      call add(w:toc_linenos, l:lineno+1)
+      call add(w:toc_files, l:file)
     endfor
-  endif
-endfunction
 
-function! meta#toc_on_leave()
-  if (get(g:toc_up, -1, '') != b:toc_current) && ! exists('b:going_up') && ! exists('b:going_rel')
-    call add(g:toc_up, expand('%:p:h:t').':'.expand('%:r'))
+    let w:toc_idx = index(w:toc_pagerefs, b:pageid)
   endif
-
-  if ! exists('b:going_up') && ! exists('b:going_rel')
-    let context_cmd = 'ark pagerefs -p=none -d, :'.expand('%:r').' | head -c -1'
-    let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> meta#set_context(output) }})
-  endif
-endfunction
-
-function! meta#page_on_leave()
-  let l:a = 1
 endfunction

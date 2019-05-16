@@ -27,14 +27,26 @@ autocmd BufWritePost * if g:Pecho != []
 function! s:follow_link()
   let l:view = winsaveview()
 
-  let l:arkId     = substitute(getline('.'), '.*<<!\?\([^<,>]*\).*', '\1', '')
-  let l:fileName  = system('ark paths '.l:arkId)
+  let l:ark_uri = substitute(getline('.'), '.*<<!\?\([^<,>]*\).*', '\1', '')
 
-  if v:shell_error == 0
-    execute 'edit '.l:fileName
+  " I can guess the link if it starts with colon
+  if l:ark_uri[0] == ':'
+    execute 'edit '.l:ark_uri[1:-1].'.*'
+
+  " Or when I'm in a toc context
+  elseif exists('w:toc_current') && exists('w:toc_linenos') && index(w:toc_linenos, line('.')) != -1
+    execute 'edit '.w:toc_files[index(w:toc_linenos, line('.'))]
+
+  " Otherwise I have to process it
   else
-    echom 'No such file: '.l:fileName
-  endif
+    let l:file_name  = system('ark paths '.l:ark_uri.' | head -c -1')
+
+    if v:shell_error == 0 && filereadable(l:file_name)
+      execute 'edit '.l:file_name
+    else
+      echom 'No such file: '.l:file_name
+    endif
+  end
 
   normal! 
   call winrestview(l:view)
@@ -66,6 +78,9 @@ nmap <silent> <Plug>(AnkifyInsertHash) :.!grand 8<cr>
 nmap <silent> <Plug>(AnkifyNewPage) :.! read b; touch "$b".adoc; echo ". <<:$b,>>"<cr>
 nmap <silent> <Plug>(AnkifyDisplayStats) :call mappings#get_stats()<cr>
 
+nmap <silent> <Plug>(AnkifySearchArchive) :call meta#search_archie()<cr>
+nmap <silent> <Plug>(AnkifySearchTocs) :call meta#search_tocs()<cr>
+nmap <silent> <Plug>(AnkifySearchTocContext) :call meta#search_toc_context()<cr>
 
 nmap <silent> <localleader>u <Plug>(AnkifyUpFile)
 nmap <silent> <localleader>U <Plug>(AnkifyUpUpFile)
@@ -89,6 +104,10 @@ nmap <silent> <localleader>I <Plug>(AnkifyInsertHash)
 nmap <silent> <localleader>= <Plug>(AnkifyLinksInsert)
 nmap <silent> <localleader>+ <Plug>(AnkifyLinksClear)
 nmap <silent> <localleader>f <Plug>(AnkifyLinksFollow)
+
+nmap <silent> <localleader>/a <Plug>(AnkifySearchArchive)
+nmap <silent> <localleader>/t <Plug>(AnkifySearchTocs)
+nmap <silent> <localleader>/c <Plug>(AnkifySearchTocContext)
 
 " TODO should be configurable on what tags should look like
 " a: count up
@@ -126,7 +145,6 @@ function! Ark(args)
 
   " echo l:path
   execute 'edit '.l:path
-
 endfunction
 
 let g:ankify_vim_loaded = v:true

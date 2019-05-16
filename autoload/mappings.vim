@@ -81,13 +81,7 @@ function! mappings#copy(mode)
 
   if match(getline('.'), '^:\d\+:$') != -1
 
-    if a:mode == 'q'
-      let @+='"card:1" "tag:'.(b:ftag).'" "Quest:*'.(getline('.')).'*"'
-
-    elseif a:mode == 'v'
-      let l:qq='card:1 tag:'.(b:ftag).' Quest:\"*'.(getline('.')).'*\"'
-
-    elseif a:mode == 'b'
+    if a:mode == 'b'
       execute 'normal! "ayy'
       let l:qid = substitute(@a, '.*:\([0-9]\+\):.*', '\1', '')
 
@@ -107,9 +101,6 @@ function! mappings#copy(mode)
 
       call winrestview(l:view)
 
-
-    elseif a:mode == 't'
-      let @+=(b:ftag).(getline('.'))
     endif
 
   else

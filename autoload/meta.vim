@@ -150,6 +150,17 @@ function! meta#page_go_up()
       return
     end
 
+    " Remove one layer preemptively if you're going up in toc itself
+    if b:pageid == w:toc_history_pagerefs[-1]
+      call remove(w:toc_history_files, -1)
+      call remove(w:toc_history_pagerefs, -1)
+    endif
+
+    if len(w:toc_history_pagerefs) == 0
+      echo 'No toc context available'
+      return
+    end
+
     let l:upfile = w:toc_history_files[-1]
 
     if filereadable(l:upfile)
@@ -240,6 +251,22 @@ function! meta#toc_on_enter()
   endif
 endfunction
 
+function! meta#toc_on_leave_wrapper()
+  let l:ark_uri = substitute(getline('.'), '.*<<!\?\([^<,>]*\).*', '\1', '')
+
+  " if you're on a readme file, follow it
+  if l:ark_uri =~ 'README'
+    call meta#follow_link(l:ark_uri)
+  endif
+
+  " otherwise set toc context to current file, if readme
+  if expand('%') =~ 'README'
+    call meta#toc_on_leave()
+  else
+    echo 'Can only be executed in tocs'
+  endif
+endfunction
+
 function! meta#toc_on_leave()
   " only add to toc_history if you don't leave the current toc_history +
   " you're not going rel or up
@@ -274,3 +301,36 @@ function! meta#set_context(list)
     let w:toc_idx = index(w:toc_pagerefs, b:pageid)
   endif
 endfunction
+
+function! meta#follow_link_with_current_line()
+  let l:ark_uri = substitute(getline('.'), '.*<<!\?\([^<,>]*\).*', '\1', '')
+  call meta#follow_link(l:ark_uri)
+endfunction
+
+function! meta#follow_link(ark_uri)
+  let l:view = winsaveview()
+
+  " I can guess the link if it starts with colon
+  if a:ark_uri[0] == ':'
+    execute 'edit '.a:ark_uri[1:-1].'.*'
+
+  " Or when I'm in a toc context
+  elseif exists('w:toc_current') && exists('w:toc_linenos') && index(w:toc_linenos, line('.')) != -1
+    execute 'edit '.w:toc_files[index(w:toc_linenos, line('.'))]
+
+  " Otherwise I have to process it
+  else
+    let l:file_name  = system('ark paths '.a:ark_uri.' | head -c -1')
+
+    if v:shell_error == 0 && filereadable(l:file_name)
+      execute 'edit '.l:file_name
+    else
+      echom 'No such file: '.l:file_name
+    endif
+  end
+
+  normal! 
+  call winrestview(l:view)
+endfunction
+
+

@@ -1,10 +1,10 @@
 """""""""""""""""""" Key mappings for archive """"""""""""""""""""""""
-function! mappings#pagerefs_insert()
+function! arkify#mappings#pagerefs_insert()
 
   if expand('%') =~ 'README'
     let l:pageid_current = b:pageid
     let l:toc_pagerefs_cmd = "ark headings -p=id -od'|' ".(l:pageid_current)."//@:@ | head -c -1"
-    let l:toc_pagerefs_output = jobstart(l:toc_pagerefs_cmd, {'on_stdout': {jobid, output, type -> mappings#pagerefs_insert2_tocs(l:pageid_current, output) }})
+    let l:toc_pagerefs_output = jobstart(l:toc_pagerefs_cmd, {'on_stdout': {jobid, output, type -> arkify#mappings#pagerefs_insert2_tocs(l:pageid_current, output) }})
 
   else
     let l:whole_file = readfile(expand('%'))
@@ -20,14 +20,14 @@ function! mappings#pagerefs_insert()
           echo string(l:pageref)
 
           let l:pagerefs_cmd = "ark headings -p=id -d$'\n' ".(l:pageref)." | head -2 | head -c -1"
-          let l:stats_output = jobstart(l:pagerefs_cmd, {'on_stdout': {jobid, output, type -> mappings#pagerefs_insert2_contentpages(l:pageid_current, output) }})
+          let l:stats_output = jobstart(l:pagerefs_cmd, {'on_stdout': {jobid, output, type -> arkify#mappings#pagerefs_insert2_contentpages(l:pageid_current, output) }})
         endfor
       endif
     endfor
   endif
 endfunction
 
-function! mappings#pagerefs_insert2_tocs(pageid, input)
+function! arkify#mappings#pagerefs_insert2_tocs(pageid, input)
   if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
     let l:view = winsaveview()
     for elem in a:input
@@ -40,7 +40,7 @@ function! mappings#pagerefs_insert2_tocs(pageid, input)
   endif
 endfunction
 
-function! mappings#pagerefs_insert2_contentpages(pageid, input)
+function! arkify#mappings#pagerefs_insert2_contentpages(pageid, input)
   if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
     let l:view = winsaveview()
 
@@ -59,7 +59,7 @@ function! mappings#pagerefs_insert2_contentpages(pageid, input)
   endif
 endfunction
 
-function! mappings#display_stats(arg)
+function! arkify#mappings#display_stats(arg)
   if a:arg[0] != '' && filereadable(expand('%:p'))
     let l:view = winsaveview()
     echo substitute(a:arg[0], '\n', '', 'g')
@@ -67,12 +67,12 @@ function! mappings#display_stats(arg)
   endif
 endfunction
 
-function! mappings#get_stats()
+function! arkify#mappings#get_stats()
   let l:stats_cmd = 'ark stats -p=id -d, :'.expand('%:r')
-  let l:stats_output = jobstart(l:stats_cmd, {'on_stdout': {jobid, output, type -> mappings#display_stats(output) }})
+  let l:stats_output = jobstart(l:stats_cmd, {'on_stdout': {jobid, output, type -> arkify#mappings#display_stats(output) }})
 endfunction
 
-function! mappings#jumpRelative(i)
+function! arkify#mappings#jumpRelative(i)
   let currentFile = expand('%:t')
   " get the number of the end of file name
   let index = string(str2nr(currentFile[strlen(currentFile) - 6]) + a:i)
@@ -83,7 +83,7 @@ function! mappings#jumpRelative(i)
   endif
 endfunction
 
-function! mappings#arkadd()
+function! arkify#mappings#arkadd()
   let l:view = winsaveview()
   execute 'normal! "ayip'
 
@@ -96,7 +96,7 @@ function! mappings#arkadd()
   call winrestview(l:view)
 endfunction
 
-function! mappings#copy(mode)
+function! arkify#mappings#copy(mode)
   if a:mode == 'f'
     let @+=(b:ftag)
     return
@@ -137,7 +137,7 @@ function! mappings#copy(mode)
   endif
 endfunction
 
-function! mappings#insertTag(mode, length)
+function! arkify#mappings#insertTag(mode, length)
 
   let l:last_qid = system('ark stats :'.expand('%:r').' -p=none | cut -f1 | sort | tail -1')
   if l:last_qid == ''

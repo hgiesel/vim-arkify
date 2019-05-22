@@ -1,9 +1,5 @@
-= vim-ankify
+= vim-arkify
 
 == Features of this plugin
 
-* for use with anki-plus-archive
-
-* This plugin can be separated into two parts:
-.. Mappings for vim to work with anki and tags
-.. Autocmds to generate metainformation of files
+* for use with link:https://github.com/hgiesel/anki-plus-archive[anki-plus-archive]

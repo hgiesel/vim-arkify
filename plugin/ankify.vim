@@ -5,6 +5,10 @@ let s:plugindir = expand('<sfile>:p:h:h')
 
 let g:Pecho=[]
 
+if !exists('g:arkify_import_directory')
+  let g:arkify_import_directory = '/Users/hgiesel/Library/Mobile Documents/iCloud~net~doo~scanbot/Documents'
+endif
+
 function! Recho()
   let g:Pecho = []
 endfunction
@@ -24,69 +28,75 @@ autocmd BufWritePost * if g:Pecho != []
       \| let g:Pecho=[]
       \| endif
 
-" Plugs
-nmap <silent> <Plug>(AnkifyNextFile)    :call meta#page_go_rel(1)<cr>
-nmap <silent> <Plug>(AnkifyPrevFile)    :call meta#page_go_rel(-1)<cr>
-nmap <silent> <Plug>(AnkifyUpFile)      :call meta#page_go_up()<cr>
-nmap <silent> <Plug>(AnkifyUpUpFile)    :call meta#page_go_upup()<cr>
+" PLUG COMMANDS; PAGEREFS {{{2
+nmap <silent> <localleader>] <Plug>(ArkifyNextFile)
+nmap <silent> <localleader>[ <Plug>(ArkifyPrevFile)
+nmap <silent> <localleader>u <Plug>(ArkifyUpFile)
+nmap <silent> <localleader>U <Plug>(ArkifyUpUpFile)
 
-nmap <silent> <Plug>(AnkifyAnkiAddCard) :call mappings#arkadd()<cr>
-nmap <silent> <Plug>(AnkifyAnkiBrowse) :call mappings#copy('b')<cr>
+nmap <silent> <Plug>(ArkifyNextFile) :call arkify#meta#page_go_rel(1)<cr>
+nmap <silent> <Plug>(ArkifyPrevFile) :call arkify#meta#page_go_rel(-1)<cr>
+nmap <silent> <Plug>(ArkifyUpFile)   :call arkify#meta#page_go_up()<cr>
+nmap <silent> <Plug>(ArkifyUpUpFile) :call arkify#meta#page_go_upup()<cr>
 
-nmap <silent> <Plug>(AnkifyInsertHash) :.!grand 8<cr>
-nmap <silent> <Plug>(AnkifyNewPage) :.! read b; touch "$b".adoc; echo ". <<:$b,>>"<cr>
-nmap <silent> <Plug>(AnkifyDisplayStats) :call mappings#get_stats()<cr>
+nmap <silent> <localleader>i <Plug>(ArkifyInsertHash)
+nmap <silent> <localleader>n <Plug>(ArkifyNewPage)
+nmap <silent> <localleader>= <Plug>(ArkifyLinksInsert)
+nmap <silent> <localleader>+ <Plug>(ArkifyLinksClear)
+nmap <silent> <localleader>f <Plug>(ArkifyLinksFollow)
+nmap <silent> <localleader>F <Plug>(ArkifyLinksSetContext)
 
-nmap <silent> <Plug>(AnkifyLinksInsert) :call mappings#pagerefs_insert()<cr>
-nmap <silent> <Plug>(AnkifyLinksClear) :%s/<<\(!\?[^>,]\+\).*>>/\=substitute('<<'.submatch(1).'>>','\n','','g')<cr>
-nmap <silent> <Plug>(AnkifyLinksFollow) :call meta#follow_link_with_current_line()<cr>
-nmap <silent> <Plug>(AnkifyLinksSetContext) :call meta#toc_on_leave_wrapper()<cr>
+nmap <silent> <Plug>(ArkifyInsertHash)      :.!grand 8<cr>
+nmap <silent> <Plug>(ArkifyNewPage)         :.! read b; touch "$b".adoc; echo ". <<:$b,>>"<cr>
+nmap <silent> <Plug>(ArkifyLinksInsert)     :call arkify#mappings#pagerefs_insert()<cr>
+nmap <silent> <Plug>(ArkifyLinksClear)      :%s/<<\(!\?[^>,]\+\).*>>/\=substitute('<<'.submatch(1).'>>','\n','','g')<cr>
+nmap <silent> <Plug>(ArkifyLinksFollow)     :call arkify#meta#follow_link_with_current_line()<cr>
+nmap <silent> <Plug>(ArkifyLinksSetContext) :call arkify#meta#toc_on_leave_wrapper()<cr>
 
-nmap <silent> <Plug>(AnkifySearchArchive) :call meta#search_archive()<cr>
-nmap <silent> <Plug>(AnkifySearchTocs) :call meta#search_tocs()<cr>
-nmap <silent> <Plug>(AnkifySearchTocContext) :call meta#search_toc_context()<cr>
-nmap <silent> <Plug>(AnkifySearchExpandedTocContext) :call meta#search_expanded_toc_context()<cr>
+" PLUG COMMANDS; ASSETREFS {{{2
+nmap <silent> <localleader>I <Plug>(ArkifyImportAsset)
 
-nmap <silent> <localleader>u <Plug>(AnkifyUpFile)
-nmap <silent> <localleader>U <Plug>(AnkifyUpUpFile)
-nmap <silent> <localleader>] <Plug>(AnkifyNextFile)
-nmap <silent> <localleader>[ <Plug>(AnkifyPrevFile)
+nmap <silent> <Plug>(ArkifyImportAsset) :call arkify#assets#import_from_directory()<cr>
 
-nmap <silent> <localleader>n <Plug>(AnkifyNewPage)
-nmap <silent> <localleader>s <Plug>(AnkifyDisplayStats)
-nmap <silent> <localleader>a <Plug>(AnkifyAnkiAddCard)
-nmap <silent> <localleader>b <Plug>(AnkifyAnkiBrowse)
+" PLUG COMMANDS; SEARCHING {{{2
+nmap <silent> <localleader>/a <Plug>(ArkifySearchArchive)
+nmap <silent> <localleader>/t <Plug>(ArkifySearchTocs)
+nmap <silent> <localleader>/c <Plug>(ArkifySearchTocContext)
+nmap <silent> <localleader>/C <Plug>(ArkifySearchExpandedTocContext)
 
-nmap <silent> <localleader>i <Plug>(AnkifyInsertHash)
+nmap <silent> <Plug>(ArkifySearchArchive)            :call arkify#meta#search_archive()<cr>
+nmap <silent> <Plug>(ArkifySearchTocs)               :call arkify#meta#search_tocs()<cr>
+nmap <silent> <Plug>(ArkifySearchTocContext)         :call arkify#meta#search_toc_context()<cr>
+nmap <silent> <Plug>(ArkifySearchExpandedTocContext) :call arkify#meta#search_expanded_toc_context()<cr>
 
-nmap <silent> <localleader>= <Plug>(AnkifyLinksInsert)
-nmap <silent> <localleader>+ <Plug>(AnkifyLinksClear)
-nmap <silent> <localleader>f <Plug>(AnkifyLinksFollow)
-nmap <silent> <localleader>F <Plug>(AnkifyLinksSetContext)
+" PLUG COMMANDS; NOTE CREATION AND BROWSING {{{2
+nmap <silent> <Plug>(ArkifyDisplayStats) :call arkify#mappings#get_stats()<cr>
+nmap <silent> <Plug>(ArkifyAnkiAddCard)  :call arkify#mappings#arkadd()<cr>
+nmap <silent> <Plug>(ArkifyAnkiBrowse)   :call arkify#mappings#copy('b')<cr>
 
-nmap <silent> <localleader>/a <Plug>(AnkifySearchArchive)
-nmap <silent> <localleader>/t <Plug>(AnkifySearchTocs)
-nmap <silent> <localleader>/c <Plug>(AnkifySearchTocContext)
-nmap <silent> <localleader>/C <Plug>(AnkifySearchExpandedTocContext)
+nmap <silent> <localleader>s <Plug>(ArkifyDisplayStats)
+nmap <silent> <localleader>a <Plug>(ArkifyAnkiAddCard)
+nmap <silent> <localleader>b <Plug>(ArkifyAnkiBrowse)
 
+" AUTO COMMANDS {{{2
 " TODO should be configurable on what tags should look like
 " a: count up
 " b: count up (n characters long)
 " c: random number (n characters long)
 
-" autocmd BufWritePre *.* call AnkifyPrintMeta()
+" autocmd BufWritePre *.* call ArkifyPrintMeta()
 
-autocmd BufWrite $ARCHIVE_ROOT/* call meta#page_on_save()
-" autocmd QuitPre $ARCHIVE_ROOT/* call meta#page_on_exit()
+autocmd BufWrite $ARCHIVE_ROOT/* call arkify#meta#page_on_save()
+" autocmd QuitPre $ARCHIVE_ROOT/* call arkify#meta#page_on_exit()
 
-autocmd BufWritePost $ARCHIVE_ROOT/calendar/* call meta#cal_on_save()
-autocmd BufEnter $ARCHIVE_ROOT/calendar/* call meta#cal_on_save()
+autocmd BufWritePost $ARCHIVE_ROOT/calendar/* call arkify#meta#cal_on_save()
+autocmd BufEnter $ARCHIVE_ROOT/calendar/* call arkify#meta#cal_on_save()
 
-autocmd BufEnter $ARCHIVE_ROOT/**/README* call meta#toc_on_enter()
-autocmd BufEnter $ARCHIVE_ROOT/* call meta#page_on_enter()
+autocmd BufEnter $ARCHIVE_ROOT/**/README* call arkify#meta#toc_on_enter()
+autocmd BufEnter $ARCHIVE_ROOT/* call arkify#meta#page_on_enter()
 
-autocmd BufLeave $ARCHIVE_ROOT/**/README* call meta#toc_on_leave()
-autocmd BufLeave $ARCHIVE_ROOT/* call meta#page_on_leave()
+autocmd BufLeave $ARCHIVE_ROOT/**/README* call arkify#meta#toc_on_leave()
+autocmd BufLeave $ARCHIVE_ROOT/* call arkify#meta#page_on_leave()
 
 command! -nargs=1 Z vimgrep "<args>" $ARCHIVE_ROOT/**/*.adoc
 command! -nargs=1 Ark call Ark("<args>")

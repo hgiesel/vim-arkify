@@ -1,5 +1,5 @@
 """""""""""""""""""" Print meta information """""""""""""""""""
-function! meta#cal_on_save()
+function! arkify#meta#cal_on_save()
   let l:view = winsaveview()
 
   let l:whole_file = readfile(expand('%'))
@@ -41,7 +41,7 @@ function! meta#cal_on_save()
 endfunction
 
 
-function! meta#toc_on_save()
+function! arkify#meta#toc_on_save()
   let l:view = winsaveview()
   let b:topic = expand("%:p:h:t")
 
@@ -62,7 +62,7 @@ function! meta#toc_on_save()
 endfunction
 
 
-function! meta#prepare_stats(arg)
+function! arkify#meta#prepare_stats(arg)
   if a:arg[0] != '' && filereadable(expand('%:p'))
     let l:view = winsaveview()
     let b:stats_fix_cmd = 'normal! S:stats: '.substitute(a:arg[0], '\n', '', 'g')
@@ -70,9 +70,9 @@ function! meta#prepare_stats(arg)
   endif
 endfunction
 
-function! meta#page_on_save_stats()
+function! arkify#meta#page_on_save_stats()
   let l:stats_cmd = 'ark stats -p=id -d, :'.expand('%:r')
-  let l:stats_output = jobstart(l:stats_cmd, {'on_stdout': {jobid, output, type -> meta#prepare_stats(output) }}) " append(line('.'), output) }})
+  let l:stats_output = jobstart(l:stats_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#prepare_stats(output) }}) " append(line('.'), output) }})
 
   if exists('b:stats_fix_cmd')
     call cursor([2,1])
@@ -81,7 +81,7 @@ function! meta#page_on_save_stats()
   endif
 endfunction
 
-function! meta#page_on_save()
+function! arkify#meta#page_on_save()
   let l:view = winsaveview()
 
   let l:verify_cmd = 'ark verify -p=none -d" : " :'.expand('%:r')
@@ -90,7 +90,7 @@ function! meta#page_on_save()
   call winrestview(l:view)
 endfunction
 
-function! meta#search_archive()
+function! arkify#meta#search_archive()
   if exists('g:archive_root')
     if exists('g:loaded_denite')
       call denite#start([{'name': 'grep', 'args': [g:archive_root]}])
@@ -103,29 +103,29 @@ function! meta#search_archive()
   endif
 endfunction
 
-function! meta#search_tocs()
+function! arkify#meta#search_tocs()
     let toc_cmd = 'ark paths --tocs @:@ | head -c -1'
-    let toc_output = jobstart(toc_cmd, {'on_stdout': {jobid, output, type -> meta#search_meta_search(output) }})
+    let toc_output = jobstart(toc_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#search_meta_search(output) }})
 endfunction
 
-function! meta#search_toc_context()
+function! arkify#meta#search_toc_context()
   if exists ('w:toc_current') && exists('w:toc_files')
-    call meta#search_meta_search(w:toc_files)
+    call arkify#meta#search_meta_search(w:toc_files)
   else
     echo 'No toc context established'
   endif
 endfunction
 
-function! meta#search_expanded_toc_context()
+function! arkify#meta#search_expanded_toc_context()
   if exists('w:toc_current')
     let toc_cmd = 'ark paths --expand-tocs '.w:toc_current.'//@:@ | head -c -1'
-    let toc_output = jobstart(toc_cmd, {'on_stdout': {jobid, output, type -> meta#search_meta_search(output) }})
+    let toc_output = jobstart(toc_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#search_meta_search(output) }})
   else
     echo 'No toc context established'
   endif
 endfunction
 
-function! meta#search_meta_search(input)
+function! arkify#meta#search_meta_search(input)
   if a:input != ['']
     if len(a:input) > 0
       if exists('g:loaded_denite')
@@ -139,7 +139,7 @@ function! meta#search_meta_search(input)
   endif
 endfunction
 
-function! meta#page_go_upup()
+function! arkify#meta#page_go_upup()
   if exists('g:loaded_denite')
     let l:first_cmd = 'grep:.::<<\:'.b:pagecomp.',.*>>'
     let l:second_cmd = 'grep:'.g:archive_root.'::<<'.substitute(b:pageid, ':', '\\:', '').',.*>>'
@@ -150,7 +150,7 @@ function! meta#page_go_upup()
   endif
 endfunction
 
-function! meta#page_go_up()
+function! arkify#meta#page_go_up()
   if exists('w:toc_history_pagerefs') && exists('w:toc_idx')
 
     if len(w:toc_history_pagerefs) == 0
@@ -190,7 +190,7 @@ function! meta#page_go_up()
 endfunction
 
 
-function! meta#page_go_rel(rel)
+function! arkify#meta#page_go_rel(rel)
   if exists('w:toc_files') && exists('w:toc_idx') && w:toc_idx != -1 
 
     let b:going_rel = v:true
@@ -205,7 +205,7 @@ function! meta#page_go_rel(rel)
   endif
 endfunction
 
-function! meta#page_on_enter()
+function! arkify#meta#page_on_enter()
   let b:going_up = v:false
   let b:going_rel = v:false
 
@@ -227,10 +227,10 @@ function! meta#page_on_enter()
   endif
 endfunction
 
-function! meta#page_on_leave()
+function! arkify#meta#page_on_leave()
 endfunction
 
-function! meta#toc_on_enter()
+function! arkify#meta#toc_on_enter()
   let b:going_up  = v:false
   let b:going_rel = v:false
 
@@ -248,7 +248,7 @@ function! meta#toc_on_enter()
     let w:toc_history_pagerefs = []
 
     let context_cmd = 'ark pagerefs -p=none -d, '.b:pageid.' | head -c -1'
-    let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> meta#set_context(output) }})
+    let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#set_context(output) }})
 
     let w:toc_current = b:pageid
 
@@ -259,23 +259,23 @@ function! meta#toc_on_enter()
   endif
 endfunction
 
-function! meta#toc_on_leave_wrapper()
+function! arkify#meta#toc_on_leave_wrapper()
   let l:ark_uri = substitute(getline('.'), '.*<<!\?\([^<,>]*\).*', '\1', '')
 
   " if you're on a readme file, follow it
   if l:ark_uri =~ 'README'
-    call meta#follow_link(l:ark_uri)
+    call arkify#meta#follow_link(l:ark_uri)
   endif
 
   " otherwise set toc context to current file, if readme
   if expand('%') =~ 'README'
-    call meta#toc_on_leave()
+    call arkify#meta#toc_on_leave()
   else
     echo 'Can only be executed in tocs'
   endif
 endfunction
 
-function! meta#toc_on_leave()
+function! arkify#meta#toc_on_leave()
   " only add to toc_history if you don't leave the current toc_history +
   " you're not going rel or up
   if exists('w:toc_history_pagerefs') && exists('w:toc_history_files')
@@ -286,13 +286,13 @@ function! meta#toc_on_leave()
 
   if ! b:going_up && ! b:going_rel
     let context_cmd = 'ark pagerefs -p=none -d, '.b:pageid.' | head -c -1'
-    let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> meta#set_context(output) }})
+    let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#set_context(output) }})
 
     let w:toc_current = b:pageid
   endif
 endfunction
 
-function! meta#set_context(list)
+function! arkify#meta#set_context(list)
   if a:list != ['']
 
     let w:toc_pagerefs = []
@@ -312,12 +312,12 @@ function! meta#set_context(list)
   endif
 endfunction
 
-function! meta#follow_link_with_current_line()
+function! arkify#meta#follow_link_with_current_line()
   let l:ark_uri = substitute(getline('.'), '.*<<!\?\([^<,>]*\).*', '\1', '')
-  call meta#follow_link(l:ark_uri)
+  call arkify#meta#follow_link(l:ark_uri)
 endfunction
 
-function! meta#follow_link(ark_uri)
+function! arkify#meta#follow_link(ark_uri)
   let l:view = winsaveview()
 
   " I can guess the link if it starts with colon

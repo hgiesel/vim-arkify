@@ -98,23 +98,6 @@ autocmd BufEnter $ARCHIVE_ROOT/* call arkify#meta#page_on_enter()
 autocmd BufLeave $ARCHIVE_ROOT/**/README* call arkify#meta#toc_on_leave()
 autocmd BufLeave $ARCHIVE_ROOT/* call arkify#meta#page_on_leave()
 
-command! -nargs=1 Z vimgrep "<args>" $ARCHIVE_ROOT/**/*.adoc
-command! -nargs=1 Ark call Ark("<args>")
-
-function! Ark(args)
-  echo a:args
-
-  let l:path = system("ark paths '" . a:args . "'")[0:-2] " skip newline at the end
-
-  if l:path[-1:] == ':'
-    " edit if path contains lineno
-    let l:cmd_pre = '+silent\\ execute\\ ''normal!\\ '
-    let l:cmd_post = 'G\\ zMzv'''
-    let l:path = substitute(l:path, '\(.*\):\(\d*\):', l:cmd_pre.'\2'.l:cmd_post.' \1', '')
-  endif
-
-  " echo l:path
-  execute 'edit '.l:path
-endfunction
+command! -nargs=1 Ark call arkify#meta#follow_link("<args>")
 
 let g:ankify_vim_loaded = v:true

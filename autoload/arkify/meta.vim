@@ -141,8 +141,8 @@ endfunction
 
 function! arkify#meta#page_go_upup()
   if exists('g:loaded_denite')
-    let l:first_cmd = 'grep:.::<<\:'.b:pagecomp.',.*>>'
-    let l:second_cmd = 'grep:'.g:archive_root.'::<<'.substitute(b:pageid, ':', '\\:', '').',.*>>'
+    let l:first_cmd = 'grep:.::<<!\\?\:'.b:pagecomp.',.*>>'
+    let l:second_cmd = 'grep:'.g:archive_root.'::<<!\\?'.substitute(b:pageid, ':', '\\:', '').',.*>>'
     let l:full_cmd = 'Denite -no-empty ' . l:first_cmd . ' ' . l:second_cmd
     execute l:full_cmd
   else
@@ -294,7 +294,6 @@ endfunction
 
 function! arkify#meta#set_context(list)
   if a:list != ['']
-
     let w:toc_pagerefs = []
     let w:toc_linenos = []
     let w:toc_files = []
@@ -308,37 +307,55 @@ function! arkify#meta#set_context(list)
     endfor
 
     let w:toc_idx = index(w:toc_pagerefs, b:pageid)
-
   endif
 endfunction
 
 function! arkify#meta#follow_link_with_current_line()
-  let l:ark_uri = substitute(getline('.'), '.*<<!\?\([^<,>]*\).*', '\1', '')
-  call arkify#meta#follow_link(l:ark_uri)
+  let l:line_current = getline('.')
+  let l:pageref = substitute(l:line_current, '.*<<!\?\([^<,>]*\).*', '\1', '')
+
+  if l:line_current == l:pageref
+    echom 'No pageref found on current line: '.line('.').'!'
+  else
+    call arkify#meta#follow_link(l:pageref)
+  end
 endfunction
 
-function! arkify#meta#follow_link(ark_uri)
-  let l:view = winsaveview()
+" Pressing Qf in file, or :Ark
+function! arkify#meta#follow_link(pageref)
+  if a:pageref[0] == ':'
+    " I can guess the link if it starts with colon
+    execute 'edit ./'.a:pageref[1:-1].'.*'
 
-  " I can guess the link if it starts with colon
-  if a:ark_uri[0] == ':'
-    execute 'edit '.a:ark_uri[1:-1].'.*'
+  elseif exists('w:toc_current') && exists('w:toc_pagerefs') && index(w:toc_pagerefs, a:pageref) != -1
+    " The link is part of the toc context
+    execute 'edit '.w:toc_files[index(w:toc_pagerefs, a:pageref)]
 
-  " Or when I'm in a toc context
-  elseif exists('w:toc_current') && exists('w:toc_linenos') && index(w:toc_linenos, line('.')) != -1
-    execute 'edit '.w:toc_files[index(w:toc_linenos, line('.'))]
-
-  " Otherwise I have to process it
   else
-    let l:file_name  = system('ark paths '.a:ark_uri.' | head -c -1')
+    " Otherwise I have to process it
+    " also the only path that allows noteids instead of pageids
+    let l:path = system("ark paths '".a:pageref."'")[0:-2] " skip newline at the end
 
-    if v:shell_error == 0 && filereadable(l:file_name)
-      execute 'edit '.l:file_name
+    if l:path[-1:] == ':'
+      " if pageref contained a noteid
+      let l:cmd_pre = '+silent\ execute\ ''normal!\ '
+      let l:cmd_post = 'GzMzv'''
+
+      let l:path_actual = substitute(l:path, '\(.*\):\%(\d*\):', '\1', '')
+      let l:lineno = substitute(l:path, '\%(.*\):\(\d*\):', '\1', '')
+
+      let l:path_cmd = 'edit '.l:cmd_pre.l:lineno.l:cmd_post.' '.l:path_actual
     else
-      echom 'No such file: '.l:file_name
+      let l:path_cmd = 'edit '.l:path
+    end
+
+    if v:shell_error == 0 && filereadable(l:path_actual)
+      execute l:path_cmd
+    else
+      echom 'No such file: '.a:pageref
     endif
+
   end
 
   normal! 
-  call winrestview(l:view)
 endfunction

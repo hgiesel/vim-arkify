@@ -3,7 +3,7 @@ function! arkify#mappings#pagerefs_insert()
 
   if expand('%') =~ 'README'
     let l:pageid_current = b:pageid
-    let l:toc_pagerefs_cmd = "ark headings -p=id -od'|' ".(l:pageid_current)."//@:@ | head -c -1"
+    let l:toc_pagerefs_cmd = "ark headings -p=id -od'|' -f ".(l:pageid_current)."//@:@ | head -c -1"
     let l:toc_pagerefs_output = jobstart(l:toc_pagerefs_cmd, {'on_stdout': {jobid, output, type -> arkify#mappings#pagerefs_insert2_tocs(l:pageid_current, output) }})
 
   else
@@ -17,7 +17,6 @@ function! arkify#mappings#pagerefs_insert()
       if len(findings) > 0
         for f in findings
           let l:pageref = substitute(f, '<<!\?\([^,>]\+\).*>>', '\1', '')
-          echo string(l:pageref)
 
           let l:pagerefs_cmd = "ark headings -p=id -d$'\n' ".(l:pageref)." | head -2 | head -c -1"
           let l:stats_output = jobstart(l:pagerefs_cmd, {'on_stdout': {jobid, output, type -> arkify#mappings#pagerefs_insert2_contentpages(l:pageid_current, output) }})
@@ -34,7 +33,9 @@ function! arkify#mappings#pagerefs_insert2_tocs(pageid, input)
       let [l:pageref, l:heading, _] = split(elem, '|')
       let l:pageref = substitute(l:pageref, '^'.b:sectioncomp.'\(:.*\)', '\1', '')
 
-      silent execute ':%s/\(<<!\?\).*'.l:pageref.',\?.\{-}>>/\1'.l:pageref.','.l:heading.'>>/'
+      let l:cmd_pagerefs = ':%s/\(<<!\?\).*'.l:pageref.',\?.\{-}>>/\1'.l:pageref.','.l:heading.'>>/'
+
+      silent execute l:cmd_pagerefs
     endfor
     call winrestview(l:view)
   endif

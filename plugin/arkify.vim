@@ -43,15 +43,19 @@ nmap <silent> <localleader>i <Plug>(ArkifyInsertHash)
 nmap <silent> <localleader>n <Plug>(ArkifyNewPage)
 nmap <silent> <localleader>= <Plug>(ArkifyLinksInsert)
 nmap <silent> <localleader>+ <Plug>(ArkifyLinksClear)
+
 nmap <silent> <localleader>f <Plug>(ArkifyLinksFollow)
 nmap <silent> <localleader>F <Plug>(ArkifyLinksSetContext)
+nmap <silent> <localleader>g <Plug>(ArkifyLinksCopy)
 
 nmap <silent> <Plug>(ArkifyInsertHash)      :.!grand 8<cr>
 nmap <silent> <Plug>(ArkifyNewPage)         :.! read b; touch "$b".adoc; echo ". <<:$b,>>"<cr>
 nmap <silent> <Plug>(ArkifyLinksInsert)     :call arkify#mappings#pagerefs_insert()<cr>
 nmap <silent> <Plug>(ArkifyLinksClear)      :%s/<<\(!\?[^>,]\+\).*>>/\=substitute('<<'.submatch(1).'>>','\n','','g')<cr>
+
 nmap <silent> <Plug>(ArkifyLinksFollow)     :call arkify#meta#follow_link_with_current_line()<cr>
 nmap <silent> <Plug>(ArkifyLinksSetContext) :call arkify#meta#toc_on_leave_wrapper()<cr>
+nmap <silent> <Plug>(ArkifyLinksCopy)       :call arkify#meta#copy_link_with_current_line()<cr>
 
 " PLUG COMMANDS; ASSETREFS {{{2
 nmap <silent> <localleader>I <Plug>(ArkifyImportAsset)

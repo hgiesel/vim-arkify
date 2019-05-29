@@ -314,9 +314,15 @@ function! arkify#meta#follow_link_with_current_line()
   let l:line_current = getline('.')
   let l:pageref = substitute(l:line_current, '.*<<!\?\([^<,>]*\).*', '\1', '')
 
+
   if l:line_current == l:pageref
     echom 'No pageref found on current line: '.line('.').'!'
   else
+
+    if l:pageref[0] == ':'
+      let l:pageref = expand('%:p:h:t').l:pageref
+    endif
+
     call arkify#meta#follow_link(l:pageref)
   end
 endfunction
@@ -349,13 +355,23 @@ function! arkify#meta#follow_link(pageref)
       let l:path_cmd = 'edit '.l:path
     end
 
-    if v:shell_error == 0 && filereadable(l:path_actual)
-      execute l:path_cmd
-    else
-      echom 'No such file: '.a:pageref
+    execute l:path_cmd
+  end
+  normal! 
+endfunction
+
+function! arkify#meta#copy_link_with_current_line()
+  let l:line_current = getline('.')
+  let l:pageref = substitute(l:line_current, '.*<<!\?\([^<,>]*\).*', '\1', '')
+
+  if l:line_current == l:pageref
+    echom 'No pageref found on current line: '.line('.').'!'
+  else
+
+    if l:pageref[0] == ':'
+      let l:pageref = expand('%:p:h:t').l:pageref
     endif
 
+    call system('echo ''<<'.l:pageref.'>>'' | pbcopy')
   end
-
-  normal! 
 endfunction

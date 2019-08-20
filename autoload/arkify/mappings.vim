@@ -106,8 +106,8 @@ function! arkify#mappings#copy(mode)
   if match(getline('.'), '^:\d\+:$') != -1
 
     if a:mode == 'b'
-      execute 'normal! "ayy'
-      let l:qid = substitute(@a, '.*:\([0-9]\+\):.*', '\1', '')
+      execute 'normal! "xyy'
+      let l:qid = substitute(@x, '.*:\([0-9]\+\):.*', '\1', '')
 
       let l:cmd = 'ark browse '.expand('%:p:h:t').'::'.expand('%:r').'#'.l:qid
       call system(l:cmd)

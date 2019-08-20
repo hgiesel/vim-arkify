@@ -90,17 +90,17 @@ nmap <silent> <localleader>b <Plug>(ArkifyAnkiBrowse)
 
 " autocmd BufWritePre *.* call ArkifyPrintMeta()
 
-autocmd BufWrite $ARCHIVE_ROOT/* call arkify#meta#page_on_save()
+autocmd BufWrite $ARCHIVE_ROOT/*.adoc call arkify#meta#page_on_save()
 " autocmd QuitPre $ARCHIVE_ROOT/* call arkify#meta#page_on_exit()
 
-autocmd BufWritePost $ARCHIVE_ROOT/calendar/* call arkify#meta#cal_on_save()
-autocmd BufEnter $ARCHIVE_ROOT/calendar/* call arkify#meta#cal_on_save()
+autocmd BufWritePost $ARCHIVE_ROOT/calendar/*.adoc call arkify#meta#cal_on_save()
+autocmd BufEnter $ARCHIVE_ROOT/calendar/*.adoc call arkify#meta#cal_on_save()
 
-autocmd BufEnter $ARCHIVE_ROOT/**/README* call arkify#meta#toc_on_enter()
-autocmd BufEnter $ARCHIVE_ROOT/* call arkify#meta#page_on_enter()
+autocmd BufEnter $ARCHIVE_ROOT/**/README*.adoc call arkify#meta#toc_on_enter()
+autocmd BufEnter $ARCHIVE_ROOT/*.adoc call arkify#meta#page_on_enter()
 
-autocmd BufLeave $ARCHIVE_ROOT/**/README* call arkify#meta#toc_on_leave()
-autocmd BufLeave $ARCHIVE_ROOT/* call arkify#meta#page_on_leave()
+autocmd BufLeave $ARCHIVE_ROOT/**/README*.adoc call arkify#meta#toc_on_leave()
+autocmd BufLeave $ARCHIVE_ROOT/*.adoc call arkify#meta#page_on_leave()
 
 command! -nargs=1 Ark call arkify#meta#follow_link("<args>")
 

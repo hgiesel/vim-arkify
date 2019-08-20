@@ -306,6 +306,12 @@ function! arkify#meta#set_context(list)
       call add(w:toc_files, l:file)
     endfor
 
+    " prevent error when changing to another filetype
+    " from an asciidoc file
+    if get(b:, 'pageid') == 0
+      return
+    endif
+
     let w:toc_idx = index(w:toc_pagerefs, b:pageid)
   endif
 endfunction

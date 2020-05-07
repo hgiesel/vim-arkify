@@ -43,7 +43,7 @@ endfunction
 
 function! arkify#meta#toc_on_save()
   let l:view = winsaveview()
-  let b:topic = expand("%:p:h:t")
+  let b:ark_topic = expand("%:p:h:t")
 
   """ get accumulated stats of topic
   """ write tag of the file as :tag:
@@ -53,10 +53,10 @@ function! arkify#meta#toc_on_save()
   endif
 
   call cursor([1,1])
-  silent execute 'normal! S= '.toupper(b:topic[0]).substitute(b:topic[1:],'-',' ',' ')
+  silent execute 'normal! S= '.toupper(b:ark_topic[0]).substitute(b:ark_topic[1:],'-',' ',' ')
 
   call cursor([2,1])
-  silent execute 'normal! S:tag: '.b:topic
+  silent execute 'normal! S:tag: '.b:ark_topic
 
   call winrestview(l:view)
 endfunction
@@ -65,7 +65,7 @@ endfunction
 function! arkify#meta#prepare_stats(arg)
   if a:arg[0] != '' && filereadable(expand('%:p'))
     let l:view = winsaveview()
-    let b:stats_fix_cmd = 'normal! S:stats: '.substitute(a:arg[0], '\n', '', 'g')
+    let b:ark_stats_fix_cmd = 'normal! S:stats: '.substitute(a:arg[0], '\n', '', 'g')
     call winrestview(l:view)
   endif
 endfunction
@@ -74,9 +74,9 @@ function! arkify#meta#page_on_save_stats()
   let l:stats_cmd = 'ark stats -p=id -d, :'.expand('%:r')
   let l:stats_output = jobstart(l:stats_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#prepare_stats(output) }}) " append(line('.'), output) }})
 
-  if exists('b:stats_fix_cmd')
+  if exists('b:ark_stats_fix_cmd')
     call cursor([2,1])
-    silent execute b:stats_fix_cmd
+    silent execute b:ark_stats_fix_cmd
     silent noautocmd write
   endif
 endfunction
@@ -109,16 +109,16 @@ function! arkify#meta#search_tocs()
 endfunction
 
 function! arkify#meta#search_toc_context()
-  if exists ('w:toc_current') && exists('w:toc_files')
-    call arkify#meta#search_meta_search(w:toc_files)
+  if exists ('w:ark_toc_current') && exists('w:ark_toc_files')
+    call arkify#meta#search_meta_search(w:ark_toc_files)
   else
     echo 'No toc context established'
   endif
 endfunction
 
 function! arkify#meta#search_expanded_toc_context()
-  if exists('w:toc_current')
-    let toc_cmd = 'ark paths --expand-tocs '.w:toc_current.'//@:@ | head -c -1'
+  if exists('w:ark_toc_current')
+    let toc_cmd = 'ark paths --expand-tocs '.w:ark_toc_current.'//@:@ | head -c -1'
     let toc_output = jobstart(toc_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#search_meta_search(output) }})
   else
     echo 'No toc context established'
@@ -141,8 +141,8 @@ endfunction
 
 function! arkify#meta#page_go_upup()
   if exists('g:loaded_denite')
-    let l:first_cmd = 'grep:.::<<!\\?\:'.b:pagecomp.',.*>>'
-    let l:second_cmd = 'grep:'.g:archive_root.'::<<!\\?'.substitute(b:pageid, ':', '\\:', '').',.*>>'
+    let l:first_cmd = 'grep:.::<<!\\?\:'.b:ark_pagecomp.',.*>>'
+    let l:second_cmd = 'grep:'.g:archive_root.'::<<!\\?'.substitute(b:ark_pageid, ':', '\\:', '').',.*>>'
     let l:full_cmd = 'Denite -no-empty ' . l:first_cmd . ' ' . l:second_cmd
     execute l:full_cmd
   else
@@ -151,37 +151,37 @@ function! arkify#meta#page_go_upup()
 endfunction
 
 function! arkify#meta#page_go_up()
-  if exists('w:toc_history_pagerefs') && exists('w:toc_idx')
+  if exists('w:ark_toc_history_pagerefs') && exists('w:ark_toc_idx')
 
-    if len(w:toc_history_pagerefs) == 0
+    if len(w:ark_toc_history_pagerefs) == 0
       echo 'No toc context available'
       return
     end
 
     " Remove one layer preemptively if you're going up in toc itself
-    if b:pageid == w:toc_history_pagerefs[-1]
-      call remove(w:toc_history_files, -1)
-      call remove(w:toc_history_pagerefs, -1)
+    if b:ark_pageid == w:ark_toc_history_pagerefs[-1]
+      call remove(w:ark_toc_history_files, -1)
+      call remove(w:ark_toc_history_pagerefs, -1)
     endif
 
-    if len(w:toc_history_pagerefs) == 0
+    if len(w:ark_toc_history_pagerefs) == 0
       echo 'No toc context available'
       return
     end
 
-    let l:upfile = w:toc_history_files[-1]
+    let l:upfile = w:ark_toc_history_files[-1]
 
     if filereadable(l:upfile)
-      let b:going_up = v:true
+      let b:ark_going_up = v:true
 
-      if w:toc_idx != -1
-        silent execute 'edit +normal!\ G'.w:toc_linenos[w:toc_idx].'zz '.l:upfile
+      if w:ark_toc_idx != -1
+        silent execute 'edit +normal!\ G'.w:ark_toc_linenos[w:ark_toc_idx].'zz '.l:upfile
       else
         silent execute 'edit '.l:upfile
       end
 
-      call remove(w:toc_history_files, -1)
-      call remove(w:toc_history_pagerefs, -1)
+      call remove(w:ark_toc_history_files, -1)
+      call remove(w:ark_toc_history_pagerefs, -1)
 
     else
       echo 'Toc is not readable: '.l:upfile
@@ -191,10 +191,10 @@ endfunction
 
 
 function! arkify#meta#page_go_rel(rel)
-  if exists('w:toc_files') && exists('w:toc_idx') && w:toc_idx != -1 
+  if exists('w:ark_toc_files') && exists('w:ark_toc_idx') && w:ark_toc_idx != -1 
 
-    let b:going_rel = v:true
-    let l:relfile = get(w:toc_files, w:toc_idx + a:rel, w:toc_files[0])
+    let b:ark_going_rel = v:true
+    let l:relfile = get(w:ark_toc_files, w:ark_toc_idx + a:rel, w:ark_toc_files[0])
 
     if filereadable(l:relfile)
       silent execute 'edit '.l:relfile
@@ -206,24 +206,24 @@ function! arkify#meta#page_go_rel(rel)
 endfunction
 
 function! arkify#meta#page_on_enter()
-  let b:going_up = v:false
-  let b:going_rel = v:false
+  let b:ark_going_up = v:false
+  let b:ark_going_rel = v:false
 
-  let b:sectioncomp = expand('%:p:h:t')
-  let b:pagecomp    = expand('%:p:t:r')
-  let b:pageid      = (b:sectioncomp).':'.(b:pagecomp)
+  let b:ark_sectioncomp = expand('%:p:h:t')
+  let b:ark_pagecomp    = expand('%:p:t:r')
+  let b:ark_pageid      = (b:ark_sectioncomp).':'.(b:ark_pagecomp)
 
   " cut off newline character
   if ! exists('g:archive_root')
     let g:archive_root = system('ark paths')[0:-2]
   endif
 
-  if exists('w:toc_pagerefs')
-    let w:toc_idx = index(w:toc_pagerefs, b:pageid)
+  if exists('w:ark_toc_pagerefs')
+    let w:ark_toc_idx = index(w:ark_toc_pagerefs, b:ark_pageid)
   endif
 
-  if exists('b:stats_fix_cmd')
-    unlet b:stats_fix_cmd
+  if exists('b:ark_stats_fix_cmd')
+    unlet b:ark_stats_fix_cmd
   endif
 endfunction
 
@@ -231,31 +231,31 @@ function! arkify#meta#page_on_leave()
 endfunction
 
 function! arkify#meta#toc_on_enter()
-  let b:going_up  = v:false
-  let b:going_rel = v:false
+  let b:ark_going_up  = v:false
+  let b:ark_going_rel = v:false
 
-  let b:sectioncomp = expand('%:p:h:t')
-  let b:pagecomp    = expand('%:p:t:r')
-  let b:pageid      = (b:sectioncomp).':'.(b:pagecomp)
+  let b:ark_sectioncomp = expand('%:p:h:t')
+  let b:ark_pagecomp    = expand('%:p:t:r')
+  let b:ark_pageid      = (b:ark_sectioncomp).':'.(b:ark_pagecomp)
 
   " cut off newline character
   if ! exists('g:archive_root')
     let g:archive_root = system('ark paths')[0:-2]
   endif
 
-  if ! exists('w:toc_history_files')
-    let w:toc_history_files = []
-    let w:toc_history_pagerefs = []
+  if ! exists('w:ark_toc_history_files')
+    let w:ark_toc_history_files = []
+    let w:ark_toc_history_pagerefs = []
 
-    let context_cmd = 'ark pagerefs -p=none -d, '.b:pageid.' | head -c -1'
+    let context_cmd = 'ark pagerefs -p=none -d, '.b:ark_pageid.' | head -c -1'
     let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#set_context(output) }})
 
-    let w:toc_current = b:pageid
+    let w:ark_toc_current = b:ark_pageid
 
   endif
 
-  if exists('w:toc_pagerefs')
-    let w:toc_idx = index(w:toc_pagerefs, b:pageid)
+  if exists('w:ark_toc_pagerefs')
+    let w:ark_toc_idx = index(w:ark_toc_pagerefs, b:ark_pageid)
   endif
 endfunction
 
@@ -278,41 +278,41 @@ endfunction
 function! arkify#meta#toc_on_leave()
   " only add to toc_history if you don't leave the current toc_history +
   " you're not going rel or up
-  if exists('w:toc_history_pagerefs') && exists('w:toc_history_files')
-        \ && (get(w:toc_history_pagerefs, -1, '') != b:pageid) && ! b:going_up && ! b:going_rel
-    call add(w:toc_history_pagerefs, b:pageid)
-    call add(w:toc_history_files, expand('%:p'))
+  if exists('w:ark_toc_history_pagerefs') && exists('w:ark_toc_history_files')
+        \ && (get(w:ark_toc_history_pagerefs, -1, '') != b:ark_pageid) && ! b:ark_going_up && ! b:ark_going_rel
+    call add(w:ark_toc_history_pagerefs, b:ark_pageid)
+    call add(w:ark_toc_history_files, expand('%:p'))
   endif
 
-  if ! b:going_up && ! b:going_rel
-    let context_cmd = 'ark pagerefs -p=none -d, '.b:pageid.' | head -c -1'
+  if ! b:ark_going_up && ! b:ark_going_rel
+    let context_cmd = 'ark pagerefs -p=none -d, '.b:ark_pageid.' | head -c -1'
     let context_output = jobstart(context_cmd, {'on_stdout': {jobid, output, type -> arkify#meta#set_context(output) }})
 
-    let w:toc_current = b:pageid
+    let w:ark_toc_current = b:ark_pageid
   endif
 endfunction
 
 function! arkify#meta#set_context(list)
   if a:list != ['']
-    let w:toc_pagerefs = []
-    let w:toc_linenos = []
-    let w:toc_files = []
+    let w:ark_toc_pagerefs = []
+    let w:ark_toc_linenos = []
+    let w:ark_toc_files = []
 
     for elem in a:list
       let [l:pageref, l:lineno, l:file] = split(elem, ',')
 
-      call add(w:toc_pagerefs, l:pageref)
-      call add(w:toc_linenos, l:lineno+1)
-      call add(w:toc_files, l:file)
+      call add(w:ark_toc_pagerefs, l:pageref)
+      call add(w:ark_toc_linenos, l:lineno+1)
+      call add(w:ark_toc_files, l:file)
     endfor
 
     " prevent error when changing to another filetype
     " from an asciidoc file
-    if get(b:, 'pageid') == 0
+    if get(b:ark_, 'pageid') == 0
       return
     endif
 
-    let w:toc_idx = index(w:toc_pagerefs, b:pageid)
+    let w:ark_toc_idx = index(w:ark_toc_pagerefs, b:ark_pageid)
   endif
 endfunction
 
@@ -339,9 +339,9 @@ function! arkify#meta#follow_link(pageref)
     " I can guess the link if it starts with colon
     execute 'edit ./'.a:pageref[1:-1].'.*'
 
-  elseif exists('w:toc_current') && exists('w:toc_pagerefs') && index(w:toc_pagerefs, a:pageref) != -1
+  elseif exists('w:ark_toc_current') && exists('w:ark_toc_pagerefs') && index(w:ark_toc_pagerefs, a:pageref) != -1
     " The link is part of the toc context
-    execute 'edit '.w:toc_files[index(w:toc_pagerefs, a:pageref)]
+    execute 'edit '.w:ark_toc_files[index(w:ark_toc_pagerefs, a:pageref)]
 
   else
     " Otherwise I have to process it

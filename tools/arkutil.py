@@ -439,8 +439,6 @@ class ArkUri:
             analyzee = None
 
         result = []
-        result.append('card:1')
-
 
         pc = self.section_component.replace('@', '').replace('-', '*-') + '*' if self.section_component else '*'
         lc = self.page_component.replace('@', '').replace('-', '*-') + '*' if self.section_component else '*'

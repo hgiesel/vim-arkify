@@ -86,10 +86,10 @@ endfunction
 
 function! arkify#mappings#arkadd()
   let l:view = winsaveview()
-  execute 'normal! "ayip'
+  execute 'normal! "xyip'
 
   " let l:content = substitute(@a, '.\{-}\n', '', '')
-  let l:content = @a
+  let l:content = @x
   let l:cmd = 'echo '''.content.''' | ark add '.expand('%:p:h:t').'::'.expand('%:r').' | tr -d ''\n'''
   let l:resp = system(l:cmd)
 

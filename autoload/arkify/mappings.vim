@@ -2,7 +2,7 @@
 function! arkify#mappings#pagerefs_insert()
 
   if expand('%') =~ 'README'
-    let l:pageid_current = b:pageid
+    let l:pageid_current = b:ark_pageid
     let l:toc_pagerefs_cmd = "ark headings -p=id -od'|' -f ".(l:pageid_current)."//@:@ | head -c -1"
     let l:toc_pagerefs_output = jobstart(l:toc_pagerefs_cmd, {'on_stdout': {jobid, output, type -> arkify#mappings#pagerefs_insert2_tocs(l:pageid_current, output) }})
 
@@ -10,7 +10,7 @@ function! arkify#mappings#pagerefs_insert()
     let l:whole_file = readfile(expand('%'))
 
     for elem in l:whole_file
-      let l:pageid_current = b:pageid
+      let l:pageid_current = b:ark_pageid
       let findings = []
       call substitute(elem, '<<\([^>,]\+\).*>>', '\=add(l:findings, submatch(0))', 'g')
 
@@ -27,11 +27,11 @@ function! arkify#mappings#pagerefs_insert()
 endfunction
 
 function! arkify#mappings#pagerefs_insert2_tocs(pageid, input)
-  if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
+  if a:input[0] != '' && b:ark_pageid == a:pageid && filereadable(expand('%:p'))
     let l:view = winsaveview()
     for elem in a:input
       let [l:pageref, l:heading, _] = split(elem, '|')
-      let l:pageref = substitute(l:pageref, '^'.b:sectioncomp.'\(:.*\)', '\1', '')
+      let l:pageref = substitute(l:pageref, '^'.b:ark_sectioncomp.'\(:.*\)', '\1', '')
 
       let l:cmd_pagerefs = ':%s/\(<<!\?\).*'.l:pageref.',\?.\{-}>>/\1'.l:pageref.','.l:heading.'>>/'
 
@@ -42,7 +42,7 @@ function! arkify#mappings#pagerefs_insert2_tocs(pageid, input)
 endfunction
 
 function! arkify#mappings#pagerefs_insert2_contentpages(pageid, input)
-  if a:input[0] != '' && b:pageid == a:pageid && filereadable(expand('%:p'))
+  if a:input[0] != '' && b:ark_pageid == a:pageid && filereadable(expand('%:p'))
     let l:view = winsaveview()
 
     let l:longid  = a:input[0]
@@ -51,7 +51,7 @@ function! arkify#mappings#pagerefs_insert2_contentpages(pageid, input)
     let l:used_section = substitute(l:longid, ':.*', '', '')
     let l:used_page = substitute(l:longid, '.*:', '', '')
 
-    if l:used_section == b:sectioncomp
+    if l:used_section == b:ark_sectioncomp
       silent execute ':%s/\(<<!\?\).*'.l:used_page.',\?.\{-}>>/\1:'.l:used_page.','.l:heading.'>>/'
     else
       silent execute ':%s/\(<<!\?\).*'.l:used_page.',\?.\{-}>>/\1'.l:longid.','.l:heading.'>>/'

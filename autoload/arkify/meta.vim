@@ -308,7 +308,7 @@ function! arkify#meta#set_context(list)
 
     " prevent error when changing to another filetype
     " from an asciidoc file
-    if get(b:ark_, 'pageid') == 0
+    if get(b:, 'pageid') == 0
       return
     endif
 

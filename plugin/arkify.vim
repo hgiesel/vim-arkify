@@ -1,6 +1,8 @@
 if exists('g:ankify_vim_loaded')
   finish
 endif
+let g:ankify_vim_loaded = v:true
+
 let s:plugindir = expand('<sfile>:p:h:h')
 
 let g:Pecho=[]
@@ -103,5 +105,3 @@ autocmd BufLeave $ARCHIVE_ROOT/**/README*.adoc call arkify#meta#toc_on_leave()
 autocmd BufLeave $ARCHIVE_ROOT/*.adoc call arkify#meta#page_on_leave()
 
 command! -nargs=1 Ark call arkify#meta#follow_link("<args>")
-
-let g:ankify_vim_loaded = v:true
